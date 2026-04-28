@@ -1,10 +1,14 @@
-﻿namespace MaisonBean.Domain.Entities
+﻿using MaisonBean.Domain.Common;
+
+namespace MaisonBean.Domain.Entities
 {
-    public class Order
+    public class Order : BaseEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
         public string UserId { get; set; } = string.Empty;
         public string UserEmail { get; set; } = string.Empty;
+        public string DeliveryAddress { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
         public string? UpiId { get; set; }
         public decimal Subtotal { get; set; }
@@ -30,6 +34,7 @@
                 ProductName = product.Name,
                 ProductImage = product.Image,
                 BasePrice = product.Price,
+                UnitPrice = product.Price,
                 Quantity = quantity,
             });
             Subtotal = Items.Sum(i => i.BasePrice * i.Quantity);

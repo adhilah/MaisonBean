@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MaisonBean.Infrastructure.Persistence;
 
-public class AppDbContext : IdentityDbContext<AppUser>
+public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -17,9 +17,38 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<MilkOption> MilkOptions { get; set; }
     public DbSet<WishlistItem> WishlistItems { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        base.OnModelCreating(builder);
+        builder.Entity<OrderItem>()
+            .HasOne(oi => oi.Order)
+            .WithMany(o => o.Items)
+            .HasForeignKey(oi => oi.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+        // =========================
+        builder.Entity<BeanType>()
+            .Property(b => b.PriceAdd)
+            .HasPrecision(18, 2);
+
+        builder.Entity<OrderItem>()
+            .Property(o => o.BasePrice)
+            .HasPrecision(18, 2);
+
+        builder.Entity<OrderItem>()
+            .Property(o => o.UnitPrice)
+            .HasPrecision(18, 2);
+
+        builder.Entity<OrderItem>()
+            .Property(o => o.BeanPriceAdd)
+            .HasPrecision(18, 2);
+
+        builder.Entity<OrderItem>()
+            .Property(o => o.MilkPriceAdd)
+            .HasPrecision(18, 2);
+
+        builder.Entity<WishlistItem>()
+            .Property(w => w.Price)
+            .HasPrecision(18, 2);
     }
 }

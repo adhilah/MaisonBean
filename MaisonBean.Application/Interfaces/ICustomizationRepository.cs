@@ -6,6 +6,6 @@ public interface ICustomizationRepository
 {
     Task<IEnumerable<BeanType>> GetAllBeanTypesAsync(CancellationToken ct = default);
     Task<IEnumerable<MilkOption>> GetAllMilkOptionsAsync(CancellationToken ct = default);
-    Task<BeanType?> GetBeanTypeByIdAsync(Guid id, CancellationToken ct = default);
-    Task<MilkOption?> GetMilkOptionByIdAsync(Guid id, CancellationToken ct = default);
+    Task<BeanType?> GetBeanTypeByIdAsync(int id, CancellationToken ct = default);
+    Task<MilkOption?> GetMilkOptionByIdAsync(int id, CancellationToken ct = default);
 }

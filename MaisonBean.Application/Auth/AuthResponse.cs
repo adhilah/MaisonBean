@@ -1,9 +1,9 @@
-﻿namespace MaisonBean.Application.Auth;
+﻿using MaisonBean.Application.Auth.Commands;
 
 public class AuthResponse
 {
     public string Token { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

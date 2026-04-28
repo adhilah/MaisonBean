@@ -1,5 +1,4 @@
-﻿using MaisonBean.Application.Auth;
-
+﻿using MaisonBean.Application.Auth.Commands;
 namespace MaisonBean.Application.Interfaces;
 
 public interface IAuthService

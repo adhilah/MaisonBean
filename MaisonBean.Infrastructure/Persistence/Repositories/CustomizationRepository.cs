@@ -23,12 +23,12 @@ public class CustomizationRepository : ICustomizationRepository
         return await _context.MilkOptions.ToListAsync(ct);
     }
 
-    public async Task<BeanType?> GetBeanTypeByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<BeanType?> GetBeanTypeByIdAsync(int id, CancellationToken ct = default)
     {
         return await _context.BeanTypes.FirstOrDefaultAsync(b => b.Id == id, ct);
     }
 
-    public async Task<MilkOption?> GetMilkOptionByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<MilkOption?> GetMilkOptionByIdAsync(int id, CancellationToken ct = default)
     {
         return await _context.MilkOptions.FirstOrDefaultAsync(m => m.Id == id, ct);
     }

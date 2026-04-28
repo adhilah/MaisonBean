@@ -7,8 +7,6 @@ using MaisonBean.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace MaisonBean.Infrastructure.Services;
-
 public class JwtService : IJwtService
 {
     private readonly JwtSettings _jwtSettings;
@@ -22,11 +20,10 @@ public class JwtService : IJwtService
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim(ClaimTypes.GivenName, user.FirstName),
             new Claim(ClaimTypes.Surname, user.LastName),
-            new Claim(ClaimTypes.Role, user.Role),
         };
 
         foreach (var role in roles)

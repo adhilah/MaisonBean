@@ -2,7 +2,7 @@
 
 public class BeanType
 {
-    public Guid Id { get; private set; }
+    public int Id { get; private set; }
     public string Name { get; private set; } = default!;
     public decimal PriceAdd { get; private set; }
     public string Description { get; private set; } = string.Empty;
@@ -10,5 +10,5 @@ public class BeanType
     private BeanType() { }
 
     public static BeanType Create(string name, decimal priceAdd, string description) =>
-        new() { Id = Guid.NewGuid(), Name = name, PriceAdd = priceAdd, Description = description };
+        new() { Name = name, PriceAdd = priceAdd, Description = description };
 }

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace MaisonBean.Application.Products.Queries;
 
-public record GetProductByIdQuery(Guid Id) : IRequest<ProductDto?>;
+public record GetProductByIdQuery(int Id) : IRequest<ProductDto?>;
 
 public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, ProductDto?>
 {

@@ -1,9 +1,7 @@
 ﻿using MaisonBean.Application.Interfaces;
 using MediatR;
 
-namespace MaisonBean.Application.Cart;
-
-public record ClearCartCommand(string UserId) : IRequest<Unit>;
+public record ClearCartCommand(int UserId) : IRequest<Unit>;
 
 public class ClearCartCommandHandler : IRequestHandler<ClearCartCommand, Unit>
 {
@@ -18,11 +16,16 @@ public class ClearCartCommandHandler : IRequestHandler<ClearCartCommand, Unit>
 
     public async Task<Unit> Handle(ClearCartCommand cmd, CancellationToken ct)
     {
+        if (cmd.UserId <= 0)
+            throw new ArgumentException("Invalid user.");
+
         var items = await _cart.GetByUserIdAsync(cmd.UserId, ct);
+
         foreach (var item in items)
             _cart.RemoveItem(item);
 
         await _uow.SaveChangesAsync(ct);
+
         return Unit.Value;
     }
 }

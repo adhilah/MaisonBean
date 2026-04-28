@@ -1,81 +1,82 @@
 ﻿using MaisonBean.Application.Interfaces;
-using MaisonBean.Domain.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using MaisonBean.Application.Wishlist.Commands;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class WishlistController : ControllerBase
 {
     private readonly IWishlistRepository _wishlist;
     private readonly IUnitOfWork _uow;
+    private readonly IMediator _mediator;
 
-    public WishlistController(IWishlistRepository wishlist, IUnitOfWork uow)
+    public WishlistController(
+        IWishlistRepository wishlist,
+        IUnitOfWork uow,
+        IMediator mediator)
     {
         _wishlist = wishlist;
         _uow = uow;
+        _mediator = mediator;
     }
 
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetWishlist(string userId, CancellationToken ct)
+    [HttpGet]
+    public async Task<IActionResult> GetWishlist(CancellationToken ct)
     {
-        var items = await _wishlist.GetByUserIdAsync(userId, ct);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var items = await _wishlist.GetByUserIdAsync(userId!, ct);
         return Ok(items);
     }
 
+    // Toggle
     [HttpPost("toggle")]
-    public async Task<IActionResult> Toggle([FromBody] WishlistRequest request, CancellationToken ct)
+    public async Task<IActionResult> Toggle(
+    [FromBody] ToggleWishlistCommand cmd,
+    CancellationToken ct)
     {
-        var existing = await _wishlist.GetByUserAndProductAsync(request.UserId, request.ProductId, ct);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (existing != null)
-        {
-            _wishlist.Remove(existing);
-            await _uow.SaveChangesAsync(ct);
-            return Ok(new { message = "Removed from wishlist", wishlisted = false });
-        }
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
 
-        var item = new WishlistItem
-        {
-            UserId = request.UserId,
-            ProductId = request.ProductId,
-            Name = request.Name,
-            Price = request.Price,
-            Image = request.Image
-        };
+        cmd.UserId = userId;
 
-        await _wishlist.AddAsync(item, ct);
-        await _uow.SaveChangesAsync(ct);
-        return Ok(new { message = "Added to wishlist", wishlisted = true });
+        var result = await _mediator.Send(cmd, ct);
+        return Ok(result);
     }
 
     [HttpDelete("remove/{id}")]
-    public async Task<IActionResult> Remove(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Remove(int id, CancellationToken ct)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         var item = await _wishlist.GetByIdAsync(id, ct);
         if (item == null) return NotFound();
 
+        if (item.UserId != userId)
+            return Forbid();
+
         _wishlist.Remove(item);
         await _uow.SaveChangesAsync(ct);
-        return Ok();
+
+        return Ok(new { message = "Removed" });
     }
 
-    [HttpDelete("clear/{userId}")]
-    public async Task<IActionResult> Clear(string userId, CancellationToken ct)
+    [HttpDelete("clear")]
+    public async Task<IActionResult> Clear(CancellationToken ct)
     {
-        var items = await _wishlist.GetByUserIdAsync(userId, ct);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var items = await _wishlist.GetByUserIdAsync(userId!, ct);
+
         foreach (var item in items)
             _wishlist.Remove(item);
 
         await _uow.SaveChangesAsync(ct);
-        return Ok();
-    }
-}
 
-public class WishlistRequest
-{
-    public string UserId { get; set; } = string.Empty;
-    public Guid ProductId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public string Image { get; set; } = string.Empty;
+        return Ok(new { message = "Wishlist cleared" });
+    }
 }

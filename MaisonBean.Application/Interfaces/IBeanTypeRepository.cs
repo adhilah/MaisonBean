@@ -4,5 +4,5 @@ namespace MaisonBean.Application.Interfaces;
 
 public interface IBeanTypeRepository
 {
-    Task<BeanType?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<BeanType?> GetByIdAsync(int id, CancellationToken ct);
 }

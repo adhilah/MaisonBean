@@ -1,4 +1,4 @@
-﻿using MaisonBean.Application.Auth;
+﻿using MaisonBean.Application.Auth.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,23 +19,66 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand cmd)
     {
-        var result = await _mediator.Send(cmd);
-        if (!result.Success)
-            return Conflict(new { message = result.Message });
 
-        return Ok(new { message = result.Message });
+        if (!ModelState.IsValid)
+            return BadRequest(new
+            {
+                success = false,
+                errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage)
+                    )
+            });
+
+        var result = await _mediator.Send(cmd);
+
+        if (!result.Success)
+            return Conflict(new
+            {
+                success = false,
+                message = result.Message
+            });
+
+        return StatusCode(201, new
+        {
+            success = true,
+            message = result.Message
+        });
     }
 
     // POST /api/auth/login
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand cmd)
     {
+
+        if (!ModelState.IsValid)
+            return BadRequest(new
+            {
+                success = false,
+                errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage)
+                    )
+            });
+
+
         var result = await _mediator.Send(cmd);
+
         if (!result.Success)
-            return Unauthorized(new { message = result.Message });
+            return Unauthorized(new
+            {
+                success = false,
+                message = result.Message
+            });
 
         return Ok(new
         {
+            success = true,
+            message = "Login successful",
             token = result.Token,
             user = result.User
         });

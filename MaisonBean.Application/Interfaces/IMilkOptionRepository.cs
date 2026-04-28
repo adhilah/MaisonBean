@@ -4,5 +4,5 @@ namespace MaisonBean.Application.Interfaces;
 
 public interface IMilkOptionRepository
 {
-    Task<MilkOption?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<MilkOption?> GetByIdAsync(int id, CancellationToken ct);
 }

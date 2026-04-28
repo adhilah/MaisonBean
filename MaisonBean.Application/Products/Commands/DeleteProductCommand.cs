@@ -5,7 +5,7 @@ namespace MaisonBean.Application.Products.Commands;
 
 public class DeleteProductCommand : IRequest<bool>
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 }
 
 public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, bool>
@@ -24,7 +24,7 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
         var product = await _productRepo.GetByIdAsync(request.Id);
         if (product == null) return false;
 
-        product.Deactivate();           // soft delete
+        product.Deactivate();
         _productRepo.Update(product);
         await _uow.SaveChangesAsync(ct);
         return true;

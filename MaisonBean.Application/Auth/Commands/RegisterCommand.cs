@@ -1,13 +1,28 @@
 ﻿using MaisonBean.Application.Interfaces;
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
-namespace MaisonBean.Application.Auth;
+namespace MaisonBean.Application.Auth.Commands;
 
 public class RegisterCommand : IRequest<RegisterResult>
 {
+    [Required(ErrorMessage = "First name is required")]
+    [MinLength(2)]
     public string FirstName { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Last name is required")]
+    [MinLength(2)]
     public string LastName { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress]
+    [RegularExpression(@"^[^@\s]+@[^@\s]+\.com$",
+    ErrorMessage = "Email must end with .com")]
     public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Password is required")]
+    [RegularExpression(
+    @"^(?=.*[A-Z])(?=.*\d).{6,}$",
+    ErrorMessage = "Password must be at least 6 characters and include 1 uppercase, and 1 number"
+)]
     public string Password { get; set; } = string.Empty;
 }
 
@@ -32,10 +47,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         if (exists)
             return new RegisterResult { Success = false, Message = "Email already registered." };
 
-        var result = await _authService.RegisterAsync(request, ct); // ✅ capture result
+        var result = await _authService.RegisterAsync(request, ct);
 
         if (!result.Success)
-            return new RegisterResult { Success = false, Message = result.Message }; // ✅ bubble up failure
+            return new RegisterResult { Success = false, Message = result.Message };
 
         return new RegisterResult { Success = true, Message = "Account created successfully." };
     }

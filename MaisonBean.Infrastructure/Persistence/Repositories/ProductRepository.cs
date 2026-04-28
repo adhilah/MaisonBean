@@ -13,15 +13,22 @@ public class ProductRepository : IProductRepository
     public async Task<IEnumerable<Product>> GetAllAsync() =>
         await _context.Products.Where(p => p.IsActive).ToListAsync();
 
-    public async Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<Product?> GetByIdAsync(int id, CancellationToken ct = default)
     {
         return await _context.Products.FirstOrDefaultAsync(p => p.Id == id, ct);
     }
+
     public async Task<IEnumerable<Product>> GetByCategoryAsync(string category, CancellationToken ct = default)
     {
         return await _context.Products
             .Where(p => p.Category == category && p.IsActive)
             .ToListAsync(ct);
+    }
+
+    public async Task<bool> ExistsByNameAsync(string name, CancellationToken ct = default)
+    {
+        return await _context.Products
+            .AnyAsync(p => p.Name.ToLower() == name.ToLower(), ct);
     }
 
     public async Task AddAsync(Product product) =>

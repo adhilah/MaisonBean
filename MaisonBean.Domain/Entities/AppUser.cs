@@ -2,7 +2,7 @@
 
 namespace MaisonBean.Domain.Entities;
 
-public class AppUser : IdentityUser
+public class AppUser : IdentityUser<int>
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

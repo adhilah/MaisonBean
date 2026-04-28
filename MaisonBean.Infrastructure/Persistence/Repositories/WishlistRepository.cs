@@ -19,11 +19,11 @@ namespace MaisonBean.Infrastructure.Persistence.Repositories
                 .Where(w => w.UserId == userId)
                 .ToListAsync(ct);
 
-        public async Task<WishlistItem?> GetByUserAndProductAsync(string userId, Guid productId, CancellationToken ct) =>
+        public async Task<WishlistItem?> GetByUserAndProductAsync(string userId, int productId, CancellationToken ct) =>
             await _db.WishlistItems
                 .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId, ct);
 
-        public async Task<WishlistItem?> GetByIdAsync(Guid id, CancellationToken ct) =>
+        public async Task<WishlistItem?> GetByIdAsync(int id, CancellationToken ct) =>
             await _db.WishlistItems.FindAsync(new object[] { id }, ct);
 
         public async Task AddAsync(WishlistItem item, CancellationToken ct) =>

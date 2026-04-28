@@ -1,9 +1,11 @@
 ﻿using MaisonBean.Application.Products.Commands;
 using MaisonBean.Application.Products.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MaisonBean.API.Controllers;
+
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,6 +16,7 @@ public class ProductsController : ControllerBase
     public ProductsController(IMediator mediator) => _mediator = mediator;
 
     // POST /api/products
+    [Authorize(Roles = "admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductCommand cmd)
     {
@@ -22,18 +25,19 @@ public class ProductsController : ControllerBase
     }
 
     // PUT /api/products/{id}
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductCommand cmd)
+    [Authorize(Roles = "admin")]
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateProductCommand cmd)
     {
         cmd.Id = id;
-        var result = await _mediator.Send(cmd);
-        if (!result) return NotFound($"Product {id} not found");
-        return Ok(new { message = "Product updated successfully" });
+        await _mediator.Send(cmd);
+        return NoContent();
     }
 
     // DELETE /api/products/{id}
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [Authorize(Roles = "admin")]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
     {
         var result = await _mediator.Send(new DeleteProductCommand { Id = id });
         if (!result) return NotFound($"Product {id} not found");
@@ -41,8 +45,8 @@ public class ProductsController : ControllerBase
     }
 
     // GET /api/products/{id}
-    [HttpGet("{id:guid}")] 
-    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    [HttpGet("{id:int}")] 
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
         var result = await _mediator.Send(new GetProductByIdQuery(id), ct);
         if (result is null)

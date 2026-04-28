@@ -1,7 +1,7 @@
 ﻿using MaisonBean.Application.Interfaces;
 using MediatR;
 
-namespace MaisonBean.Application.Auth;
+namespace MaisonBean.Application.Auth.Commands;
 
 public class LoginCommand : IRequest<LoginResult>
 {
@@ -15,15 +15,6 @@ public class LoginResult
     public string? Token { get; set; }
     public string? Message { get; set; }
     public UserDto? User { get; set; }
-}
-
-public class UserDto
-{
-    public string Id { get; set; } = string.Empty;
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
 }
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResult>

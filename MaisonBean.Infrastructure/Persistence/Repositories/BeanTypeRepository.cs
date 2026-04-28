@@ -11,6 +11,6 @@ public class BeanTypeRepository : IBeanTypeRepository
     private readonly AppDbContext _db;
     public BeanTypeRepository(AppDbContext db) => _db = db;
 
-    public Task<BeanType?> GetByIdAsync(Guid id, CancellationToken ct) =>
+    public Task<BeanType?> GetByIdAsync(int id, CancellationToken ct) =>
         _db.BeanTypes.FirstOrDefaultAsync(b => b.Id == id, ct);
 }

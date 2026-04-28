@@ -15,7 +15,7 @@ public class OrderController : ControllerBase
         _uow = uow;
     }
 
-    // GET api/Order/{userId}
+    // GET 
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetOrders(string userId, CancellationToken ct)
     {
@@ -23,16 +23,16 @@ public class OrderController : ControllerBase
         return Ok(orders);
     }
 
-    // GET api/Order/detail/{id}
+    // GET
     [HttpGet("detail/{id}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
         var order = await _orders.GetByIdAsync(id, ct);
         if (order == null) return NotFound();
         return Ok(order);
     }
 
-    // POST api/Order
+    // POST Orders
     [HttpPost]
     public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequest request, CancellationToken ct)
     {
@@ -40,6 +40,9 @@ public class OrderController : ControllerBase
         {
             UserId = request.UserId,
             UserEmail = request.UserEmail,
+            DeliveryAddress = request.DeliveryAddress,
+            City = request.City,
+            Phone = request.Phone,
             PaymentMethod = request.PaymentMethod,
             UpiId = request.UpiId,
             Subtotal = request.Subtotal,
@@ -53,6 +56,7 @@ public class OrderController : ControllerBase
                 ProductImage = i.ProductImage,
                 ProductCategory = i.ProductCategory,
                 BasePrice = i.BasePrice,
+                UnitPrice = i.BasePrice + i.BeanPriceAdd + i.MilkPriceAdd,
                 Quantity = i.Quantity,
                 BeanId = i.BeanId,
                 BeanName = i.BeanName,
@@ -69,9 +73,9 @@ public class OrderController : ControllerBase
         return Ok(new { message = "Order placed successfully", orderId = order.Id });
     }
 
-    // PATCH api/Order/{id}/status
+    // update order
     [HttpPatch("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request, CancellationToken ct)
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusRequest request, CancellationToken ct)
     {
         var order = await _orders.GetByIdAsync(id, ct);
         if (order == null) return NotFound();
@@ -85,7 +89,7 @@ public class OrderController : ControllerBase
 
     // PATCH api/Order/{id}/cancel
     [HttpPatch("{id}/cancel")]
-    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Cancel(int id, CancellationToken ct)
     {
         var order = await _orders.GetByIdAsync(id, ct);
         if (order == null) return NotFound();
@@ -101,7 +105,7 @@ public class OrderController : ControllerBase
 
     // DELETE api/Order/{id}
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
         var order = await _orders.GetByIdAsync(id, ct);
         if (order == null) return NotFound();
@@ -117,6 +121,9 @@ public class PlaceOrderRequest
 {
     public string UserId { get; set; } = string.Empty;
     public string UserEmail { get; set; } = string.Empty;
+    public string DeliveryAddress { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
     public string? UpiId { get; set; }
     public decimal Subtotal { get; set; }
@@ -127,16 +134,16 @@ public class PlaceOrderRequest
 
 public class OrderItemRequest
 {
-    public Guid ProductId { get; set; }
+    public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public string ProductImage { get; set; } = string.Empty;
     public string? ProductCategory { get; set; }
     public decimal BasePrice { get; set; }
     public int Quantity { get; set; }
-    public Guid? BeanId { get; set; }
+    public int? BeanId { get; set; }
     public string? BeanName { get; set; }
     public decimal BeanPriceAdd { get; set; }
-    public Guid? MilkId { get; set; }
+    public int? MilkId { get; set; }
     public string? MilkName { get; set; }
     public decimal MilkPriceAdd { get; set; }
 }

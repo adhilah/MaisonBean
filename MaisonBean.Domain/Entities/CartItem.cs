@@ -2,12 +2,12 @@
 
 public class CartItem
 {
-    public Guid Id { get; private set; }
+    public int Id { get; private set; }
 
-    public string UserId { get; private set; } = default!;
+    public int UserId { get; private set; } = default!;
     public AppUser User { get; private set; } = default!;
 
-    public Guid ProductId { get; private set; }
+    public int ProductId { get; private set; }
     public Product Product { get; private set; } = default!;
 
     // Snapshot
@@ -19,30 +19,29 @@ public class CartItem
     public int Quantity { get; private set; }
     public bool IsCustomized { get; private set; }
 
-    public Guid? BeanId { get; private set; }
+    public int? BeanId { get; private set; }
     public BeanType? Bean { get; private set; }
 
-    public Guid? MilkId { get; private set; }
+    public int? MilkId { get; private set; }
     public MilkOption? Milk { get; private set; }
     public decimal TotalPrice => UnitPrice * Quantity;
 
     private CartItem() { }
 
     public static CartItem Create(
-        string userId,
-        Guid productId,
+        int userId,
+        int productId,
         string productName,
         string? productImage,
         string? productCategory,
         decimal unitPrice,
         int quantity,
         bool isCustomized,
-        Guid? beanId,
-        Guid? milkId)
+        int? beanId,
+        int? milkId)
     {
         return new CartItem
         {
-            Id = Guid.NewGuid(),
             UserId = userId,
             ProductId = productId,
             ProductName = productName,

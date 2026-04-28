@@ -41,13 +41,14 @@ public class Product : BaseEntity
     }
 
     // ── Update method ──
-    public void Update(
-        string name, string description, decimal price,
-        string category, string image,
-        int baseCalories, string healthBenefits)
+    public void UpdateDetails(
+    string name, string description, decimal price,
+    string category, string image,
+    int baseCalories, string healthBenefits)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Product name is required.");
+
         if (price < 0)
             throw new ArgumentException("Price cannot be negative.");
 
@@ -58,6 +59,7 @@ public class Product : BaseEntity
         Image = image;
         BaseCalories = baseCalories;
         HealthBenefits = healthBenefits;
+
         SetUpdatedAt();
     }
 

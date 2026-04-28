@@ -11,6 +11,6 @@ public class MilkOptionRepository : IMilkOptionRepository
     private readonly AppDbContext _db;
     public MilkOptionRepository(AppDbContext db) => _db = db;
 
-    public Task<MilkOption?> GetByIdAsync(Guid id, CancellationToken ct) =>
+    public Task<MilkOption?> GetByIdAsync(int id, CancellationToken ct) =>
         _db.MilkOptions.FirstOrDefaultAsync(m => m.Id == id, ct);
 }
