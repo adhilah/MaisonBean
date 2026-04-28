@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using MaisonBean.Application.Orders.Commands;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,10 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(typeof(CreateProductCommand).Assembly);
-    cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly);
-});
+    cfg.RegisterServicesFromAssembly(typeof(PlaceOrderHandler).Assembly));
 
 var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")

@@ -3,36 +3,45 @@ using MaisonBean.Domain.Entities;
 using MaisonBean.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace MaisonBean.Infrastructure.Persistence.Repositories
+namespace MaisonBean.Infrastructure.Persistence.Repositories;
+
+public class OrderRepository : IOrderRepository
 {
-    public class OrderRepository : IOrderRepository
+    private readonly AppDbContext _context;
+
+    public OrderRepository(AppDbContext context)
     {
-        private readonly AppDbContext _db;
+        _context = context;
+    }
 
-        public OrderRepository(AppDbContext db)
-        {
-            _db = db;
-        }
+    public async Task<List<Order>> GetByUserIdAsync(string userId, CancellationToken ct)
+    {
+        return await _context.Orders
+            .Include(o => o.Items)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync(ct);
+    }
 
-        public async Task<IEnumerable<Order>> GetByUserIdAsync(string userId, CancellationToken ct) =>
-            await _db.Orders
-                .Include(o => o.Items)
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.Date)
-                .ToListAsync(ct);
+    public async Task<Order?> GetByIdAsync(int id, CancellationToken ct)
+    {
+        return await _context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == id, ct);
+    }
 
-        public async Task<Order?> GetByIdAsync(int id, CancellationToken ct) =>
-            await _db.Orders
-                .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == id, ct);
+    public async Task AddAsync(Order order, CancellationToken ct)
+    {
+        await _context.Orders.AddAsync(order, ct);
+    }
 
-        public async Task AddAsync(Order order, CancellationToken ct) =>
-            await _db.Orders.AddAsync(order, ct);
+    public void Update(Order order)
+    {
+        _context.Orders.Update(order);
+    }
 
-        public void Update(Order order) =>
-            _db.Orders.Update(order);
-
-        public void Remove(Order order) =>
-            _db.Orders.Remove(order);
+    public void Remove(Order order)
+    {
+        _context.Orders.Remove(order);
     }
 }
