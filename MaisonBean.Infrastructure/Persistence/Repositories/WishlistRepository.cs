@@ -1,4 +1,5 @@
 ﻿using MaisonBean.Application.Interfaces;
+using MaisonBean.Application.Wishlist.DTOs;
 using MaisonBean.Domain.Entities;
 using MaisonBean.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -31,5 +32,25 @@ namespace MaisonBean.Infrastructure.Persistence.Repositories
 
         public void Remove(WishlistItem item) =>
             _db.WishlistItems.Remove(item);
+
+        // ✅ NEW METHOD (IMPORTANT)
+        public async Task<List<WishlistItemDto>> GetWishlistWithProducts(string userId, CancellationToken ct)
+        {
+            return await _db.WishlistItems
+                .Where(w => w.UserId == userId)
+                .Include(w => w.Product)
+                .Select(w => new WishlistItemDto
+                {
+                    ProductId = w.Product.Id,
+                    Name = w.Product.Name,
+                    Price = w.Product.Price,
+                    Image = w.Product.Image,
+                    Description = w.Product.Description,
+                    Category = w.Product.Category,
+                    HealthBenefits = w.Product.HealthBenefits,
+                    BaseCalories = w.Product.BaseCalories
+                })
+                .ToListAsync(ct);
+        }
     }
 }

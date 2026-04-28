@@ -5,6 +5,6 @@ public class ToggleWishlistCommand : IRequest<WishlistResult>
 {
     public int ProductId { get; set; }
 
-    [JsonIgnore] 
-    public string UserId { get; set; }
+    [JsonIgnore]
+    public string? UserId { get; set; }
 }

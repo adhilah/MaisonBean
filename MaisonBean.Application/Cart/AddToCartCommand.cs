@@ -1,22 +1,58 @@
 ﻿using MaisonBean.Application.Interfaces;
 using MaisonBean.Domain.Entities;
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace MaisonBean.Application.Cart;
 
-public class AddToCartCommand : IRequest<decimal>
+public class AddToCartCommand : IRequest<decimal>, IValidatableObject
 {
     [JsonIgnore]
     public int UserId { get; set; }
 
+    [Required(ErrorMessage = "ProductId is required")]
     public int ProductId { get; set; }
-    public bool IsCustomized { get; set; } = false;
+
+    public bool IsCustomized { get; set; }
 
     public int? BeanId { get; set; }
     public int? MilkId { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than zero")]
     public int Quantity { get; set; } = 1;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        //Not customized - must NOT send values
+        if (!IsCustomized)
+        {
+            if (BeanId.HasValue || MilkId.HasValue)
+            {
+                yield return new ValidationResult(
+                    "BeanId and MilkId must be null when IsCustomized is false",
+                    new[] { nameof(BeanId), nameof(MilkId) });
+            }
+        }
+
+        //Customized - must send valid values
+        if (IsCustomized)
+        {
+            if (!BeanId.HasValue || BeanId <= 0)
+            {
+                yield return new ValidationResult(
+                    "BeanId is required when customization is enabled",
+                    new[] { nameof(BeanId) });
+            }
+
+            if (!MilkId.HasValue || MilkId <= 0)
+            {
+                yield return new ValidationResult(
+                    "MilkId is required when customization is enabled",
+                    new[] { nameof(MilkId) });
+            }
+        }
+    }
 }
 
 public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal>
@@ -43,15 +79,15 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
 
     public async Task<decimal> Handle(AddToCartCommand cmd, CancellationToken ct)
     {
-        // 🔐 Auth check
+        //Auth check
         if (cmd.UserId <= 0)
             throw new UnauthorizedAccessException("User not authenticated.");
 
-        // 📦 Quantity validation
+        //Quantity validation
         if (cmd.Quantity <= 0)
             throw new ArgumentException("Quantity must be greater than zero.");
 
-        // 📦 Product validation
+        //Product validation
         var product = await _products.GetByIdAsync(cmd.ProductId, ct)
             ?? throw new KeyNotFoundException("Product not found.");
 
@@ -61,7 +97,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
         if (cmd.Quantity > product.StockQuantity)
             throw new InvalidOperationException("Insufficient stock.");
 
-        // 🔴 FIXED: Customization validation
+        //Customization validation
         if (!cmd.IsCustomized)
         {
             // Ignore customization completely
@@ -70,7 +106,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
         }
         else
         {
-            // 🔴 IMPORTANT: Reject 0 or null
+            //Reject 0 or null
             if (!cmd.BeanId.HasValue || cmd.BeanId <= 0)
                 throw new ArgumentException("BeanId is required when customization is enabled.");
 
@@ -78,7 +114,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
                 throw new ArgumentException("MilkId is required when customization is enabled.");
         }
 
-        // 💰 Pricing
+        //Pricing
         decimal beanPrice = 0;
         decimal milkPrice = 0;
 
@@ -99,7 +135,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
 
         decimal unitPrice = product.Price + beanPrice + milkPrice;
 
-        // 🔁 Check existing cart item
+        //Check existing cart item
         var existing = await _cart.FindExistingAsync(
             cmd.UserId,
             cmd.ProductId,

@@ -47,8 +47,19 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             .Property(o => o.MilkPriceAdd)
             .HasPrecision(18, 2);
 
-        builder.Entity<WishlistItem>()
-            .Property(w => w.Price)
-            .HasPrecision(18, 2);
+        builder.Entity<WishlistItem>(entity =>
+        {
+            entity.HasKey(w => w.Id);
+
+            entity.Property(w => w.UserId)
+                  .IsRequired();
+
+            entity.Property(w => w.ProductId)
+                  .IsRequired();
+
+            entity.HasOne(w => w.Product)
+                  .WithMany()
+                  .HasForeignKey(w => w.ProductId);
+        });
     }
 }

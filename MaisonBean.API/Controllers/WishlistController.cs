@@ -28,7 +28,12 @@ public class WishlistController : ControllerBase
     public async Task<IActionResult> GetWishlist(CancellationToken ct)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var items = await _wishlist.GetByUserIdAsync(userId!, ct);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var items = await _wishlist.GetWishlistWithProducts(userId, ct);
+
         return Ok(items);
     }
 
