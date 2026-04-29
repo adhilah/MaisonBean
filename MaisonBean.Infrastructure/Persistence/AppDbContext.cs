@@ -31,9 +31,9 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             .Property(b => b.PriceAdd)
             .HasPrecision(18, 2);
 
-        builder.Entity<OrderItem>()
-            .Property(o => o.BasePrice)
-            .HasPrecision(18, 2);
+        //builder.Entity<OrderItem>()
+        //    .Property(o => o.BasePrice)
+        //    .HasPrecision(18, 2);
 
         builder.Entity<OrderItem>()
             .Property(o => o.UnitPrice)

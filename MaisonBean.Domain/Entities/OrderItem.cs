@@ -11,14 +11,11 @@ namespace MaisonBean.Domain.Entities
         public string ProductName { get; set; } = string.Empty;
         public string ProductImage { get; set; } = string.Empty;
         public string? ProductCategory { get; set; }
-        public decimal BasePrice { get; set; }
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public int? BeanId { get; set; }
-        public string? BeanName { get; set; }
         public decimal BeanPriceAdd { get; set; }
         public int? MilkId { get; set; }
-        public string? MilkName { get; set; }
         public decimal MilkPriceAdd { get; set; }
     }
 }

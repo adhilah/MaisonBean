@@ -38,19 +38,32 @@ public class CartController : ControllerBase
         return Ok(new { message = "Added to cart", total });
     }
 
-    [HttpPut("update/{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] int quantity, CancellationToken ct)
+    [HttpPatch("update")]
+    public async Task<IActionResult> Update(
+        [FromBody] UpdateCartItemCommand cmd,
+        CancellationToken ct)
     {
-        var userId = GetUserId();
-
-        await _mediator.Send(new UpdateCartItemCommand
+        try
         {
-            CartItemId = id,
-            UserId = userId,
-            Quantity = quantity
-        }, ct);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return Ok(new { message = "Cart updated" });
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            cmd.UserId = int.Parse(userId);
+
+            await _mediator.Send(cmd, ct);
+
+            return Ok(new { message = "Cart updated successfully" });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("remove/{id}")]

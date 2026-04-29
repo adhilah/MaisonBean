@@ -62,7 +62,7 @@ public class PlaceSingleOrderHandler
             ProductName = product.Name,
             ProductImage = product.Image,
             ProductCategory = product.Category,
-            BasePrice = product.Price,
+            //BasePrice = product.Price,
             UnitPrice = unitPrice,
             Quantity = cmd.Quantity,
             BeanId = cmd.BeanId,

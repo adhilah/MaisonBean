@@ -5,7 +5,7 @@ namespace MaisonBean.Application.Orders.Commands;
 public class PlaceOrderCommand : IRequest<int>
 {
     public int UserId { get; set; }
-    public string UserEmail { get; set; } = string.Empty;
+    //public string UserEmail { get; set; } = string.Empty;
 
     public string DeliveryAddress { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;

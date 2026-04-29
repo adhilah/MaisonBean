@@ -14,8 +14,8 @@ public class RegisterCommand : IRequest<RegisterResult>
     public string LastName { get; set; } = string.Empty;
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress]
-    [RegularExpression(@"^[^@\s]+@[^@\s]+\.com$",
-    ErrorMessage = "Email must end with .com")]
+    [RegularExpression(@"^[a-z._%+-]+@[a-z.-]+\.com$",
+ErrorMessage = "Email must contain only lowercase letters and end with .com")]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Password is required")]

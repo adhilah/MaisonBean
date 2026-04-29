@@ -25,7 +25,8 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, int>
         var cartItems = await _cart.GetByUserIdAsync(cmd.UserId, ct);
 
         if (!cartItems.Any())
-            throw new Exception("Cart is empty");
+            throw new ArgumentException("Cart is empty");
+
 
         decimal subtotal = 0;
 
@@ -39,7 +40,7 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, int>
                 ProductName = c.ProductName,
                 ProductImage = c.ProductImage,
                 ProductCategory = c.ProductCategory,
-                BasePrice = c.UnitPrice,
+                //BasePrice = c.UnitPrice,
                 UnitPrice = c.UnitPrice,
                 Quantity = c.Quantity,
                 BeanId = c.BeanId,
@@ -53,7 +54,7 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, int>
         var order = new Order
         {
             UserId = cmd.UserId.ToString(),
-            UserEmail = cmd.UserEmail,
+            //UserEmail = cmd.UserEmail,
             DeliveryAddress = cmd.DeliveryAddress,
             City = cmd.City,
             Phone = cmd.Phone,
