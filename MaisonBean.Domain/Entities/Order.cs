@@ -5,8 +5,8 @@ namespace MaisonBean.Domain.Entities;
 public class Order : BaseEntity
 {
     public string UserId { get; set; } = string.Empty;
-
     public string UserEmail { get; set; } = string.Empty;
+
     public string DeliveryAddress { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;

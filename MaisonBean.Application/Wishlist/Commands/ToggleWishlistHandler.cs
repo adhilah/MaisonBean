@@ -4,6 +4,7 @@ using MaisonBean.Domain.Entities;
 using MediatR;
 
 namespace MaisonBean.Application.Wishlist.Commands;
+
 public class ToggleWishlistHandler
     : IRequestHandler<ToggleWishlistCommand, WishlistResult>
 {
@@ -30,7 +31,11 @@ public class ToggleWishlistHandler
             _wishlist.Remove(existing);
             await _uow.SaveChangesAsync(ct);
 
-            return new WishlistResult { IsAdded = false };
+            return new WishlistResult
+            {
+                IsAdded = false,
+                Message = "Removed from wishlist"
+            };
         }
 
         var item = new WishlistItem
@@ -42,6 +47,10 @@ public class ToggleWishlistHandler
         await _wishlist.AddAsync(item, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return new WishlistResult { IsAdded = true };
+        return new WishlistResult
+        {
+            IsAdded = true,
+            Message = "Successfully added to wishlist"
+        };
     }
 }

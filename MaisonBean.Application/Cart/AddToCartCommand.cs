@@ -6,7 +6,15 @@ using System.Text.Json.Serialization;
 
 namespace MaisonBean.Application.Cart;
 
-public class AddToCartCommand : IRequest<decimal>, IValidatableObject
+// ✅ RESULT CLASS (same file)
+public class AddToCartResult
+{
+    public int CartItemId { get; set; }
+    public decimal Total { get; set; }
+}
+
+// ✅ COMMAND
+public class AddToCartCommand : IRequest<AddToCartResult>, IValidatableObject
 {
     [JsonIgnore]
     public int UserId { get; set; }
@@ -19,7 +27,6 @@ public class AddToCartCommand : IRequest<decimal>, IValidatableObject
     public int? BeanId { get; set; }
     public int? MilkId { get; set; }
 
-    // ✅ Default quantity = 1
     public int Quantity { get; set; } = 1;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -53,9 +60,9 @@ public class AddToCartCommand : IRequest<decimal>, IValidatableObject
     }
 }
 
-
-
-public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal>
+// ✅ HANDLER
+public class AddToCartCommandHandler
+    : IRequestHandler<AddToCartCommand, AddToCartResult>
 {
     private readonly ICartRepository _cart;
     private readonly IProductRepository _products;
@@ -77,21 +84,17 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
         _uow = uow;
     }
 
-    public async Task<decimal> Handle(AddToCartCommand cmd, CancellationToken ct)
+    public async Task<AddToCartResult> Handle(AddToCartCommand cmd, CancellationToken ct)
     {
-        // 🔐 Auth check
         if (cmd.UserId <= 0)
             throw new UnauthorizedAccessException("User not authenticated.");
 
-        // ✅ FIX: Quantity default handling
         if (cmd.Quantity <= 0)
             cmd.Quantity = 1;
 
-        // 🛑 Optional limit
         if (cmd.Quantity > 10)
             throw new ArgumentException("Maximum quantity allowed is 10");
 
-        // 📦 Product validation
         var product = await _products.GetByIdAsync(cmd.ProductId, ct)
             ?? throw new KeyNotFoundException("Product not found.");
 
@@ -101,7 +104,7 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
         if (cmd.Quantity > product.StockQuantity)
             throw new InvalidOperationException("Insufficient stock.");
 
-        // 🎯 Customization handling
+        // Customization
         if (!cmd.IsCustomized)
         {
             cmd.BeanId = null;
@@ -110,13 +113,12 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
         else
         {
             if (!cmd.BeanId.HasValue || cmd.BeanId <= 0)
-                throw new ArgumentException("BeanId is required when customization is enabled.");
+                throw new ArgumentException("BeanId is required.");
 
             if (!cmd.MilkId.HasValue || cmd.MilkId <= 0)
-                throw new ArgumentException("MilkId is required when customization is enabled.");
+                throw new ArgumentException("MilkId is required.");
         }
 
-        // 💰 Pricing
         decimal beanPrice = 0;
         decimal milkPrice = 0;
 
@@ -134,10 +136,6 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
 
         decimal unitPrice = product.Price + beanPrice + milkPrice;
 
-        // ✅ TOTAL PRICE
-        decimal totalPrice = unitPrice * cmd.Quantity;
-
-        // 🔁 Check existing cart item
         var existing = await _cart.FindExistingAsync(
             cmd.UserId,
             cmd.ProductId,
@@ -146,15 +144,21 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
             cmd.MilkId,
             ct);
 
-        if (existing is not null)
+        int cartItemId;
+
+        if (existing != null)
         {
             var newQty = existing.Quantity + cmd.Quantity;
 
             if (newQty > product.StockQuantity)
-                throw new InvalidOperationException("Exceeds available stock.");
+                throw new InvalidOperationException("Exceeds stock.");
 
             existing.UpdateQuantity(newQty);
             _cart.Update(existing);
+
+            await _uow.SaveChangesAsync(ct);
+
+            cartItemId = existing.Id;
         }
         else
         {
@@ -172,11 +176,17 @@ public class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, decimal
             );
 
             await _cart.AddAsync(item, ct);
+            await _uow.SaveChangesAsync(ct);
+
+            cartItemId = item.Id;
         }
 
-        await _uow.SaveChangesAsync(ct);
+        decimal total = unitPrice * cmd.Quantity;
 
-        
-        return totalPrice;
+        return new AddToCartResult
+        {
+            CartItemId = cartItemId,
+            Total = total
+        };
     }
 }

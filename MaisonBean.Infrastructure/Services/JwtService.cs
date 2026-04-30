@@ -24,6 +24,7 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim(ClaimTypes.GivenName, user.FirstName),
             new Claim(ClaimTypes.Surname, user.LastName),
+            new Claim("tokenVersion", user.TokenVersion.ToString())
         };
 
         foreach (var role in roles)

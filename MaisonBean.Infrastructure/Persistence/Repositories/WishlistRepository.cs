@@ -41,6 +41,7 @@ namespace MaisonBean.Infrastructure.Persistence.Repositories
                 .Include(w => w.Product)
                 .Select(w => new WishlistItemDto
                 {
+                    WishlistId = w.Id,
                     ProductId = w.Product.Id,
                     Name = w.Product.Name,
                     Price = w.Product.Price,

@@ -1,6 +1,7 @@
 ﻿namespace MaisonBean.Application.Wishlist.DTOs;
 public class WishlistItemDto
 {
+    public int WishlistId { get; set; }
     public int ProductId { get; set; }
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; }

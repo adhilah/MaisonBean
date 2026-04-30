@@ -130,6 +130,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
+app.UseMiddleware<TokenVersionMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

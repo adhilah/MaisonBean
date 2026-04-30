@@ -26,6 +26,20 @@ public class OrderController : ControllerBase
         _uow = uow;
     }
 
+    //Get All Order
+    [HttpGet]
+    public async Task<IActionResult> GetOrders(CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var orders = await _orders.GetByUserIdAsync(userId, ct);
+
+        return Ok(OrderMapper.ToDtoList(orders));
+    }
+
     // ✅ PLACE ORDER (Cart → Order)
     [HttpPost]
     public async Task<IActionResult> PlaceOrder(
@@ -103,5 +117,56 @@ public class OrderController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    //CANCEL ORDER (STATUS = cancelled)
+    [HttpPatch("{id}/cancel")]
+    public async Task<IActionResult> Cancel(int id, CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var order = await _orders.GetByIdAsync(id, ct);
+
+        if (order == null)
+            return NotFound();
+
+        if (order.UserId != userId)
+            return Forbid();
+
+        if (order.Status == "delivered")
+            return BadRequest("Cannot cancel delivered order");
+
+        order.Status = "cancelled";
+
+        _orders.Update(order);
+        await _uow.SaveChangesAsync(ct);
+
+        return Ok(new { message = "Order cancelled successfully" });
+    }
+
+    //DELETE ORDER (REMOVE FROM DB)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var order = await _orders.GetByIdAsync(id, ct);
+
+        if (order == null)
+            return NotFound();
+
+        if (order.UserId != userId)
+            return Forbid();
+
+        _orders.Remove(order);
+        await _uow.SaveChangesAsync(ct);
+
+        return Ok(new { message = "Order deleted permanently" });
     }
 }

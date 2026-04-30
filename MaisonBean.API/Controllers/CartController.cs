@@ -21,7 +21,7 @@ public class CartController : ControllerBase
     {
         return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
-
+    //
     [HttpGet]
     public async Task<IActionResult> GetCart(CancellationToken ct)
     {
@@ -34,8 +34,15 @@ public class CartController : ControllerBase
     public async Task<IActionResult> Add(AddToCartCommand cmd, CancellationToken ct)
     {
         cmd.UserId = GetUserId();
-        var total = await _mediator.Send(cmd, ct);
-        return Ok(new { message = "Added to cart", total });
+
+        var result = await _mediator.Send(cmd, ct);
+
+        return Ok(new
+        {
+            message = "Added to cart",
+            cartItemId = result.CartItemId,
+            total = result.Total
+        });
     }
 
     [HttpPatch("update")]

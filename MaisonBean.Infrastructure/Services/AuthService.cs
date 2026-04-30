@@ -3,6 +3,7 @@ using MaisonBean.Application.Auth;
 using MaisonBean.Application.Interfaces;
 using MaisonBean.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Cryptography;
 
 namespace MaisonBean.Infrastructure.Services;
 
@@ -58,10 +59,19 @@ public class AuthService : IAuthService
         var roles = await _userManager.GetRolesAsync(user);
         var token = _jwtService.GenerateToken(user, roles);
 
+        // 🔐 Generate Refresh Token
+        var refreshToken = GenerateRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        await _userManager.UpdateAsync(user);
+
         return new LoginResult
         {
             Success = true,
             Token = token,
+            RefreshToken = refreshToken,
             User = new UserDto
             {
                 Id = user.Id,
@@ -71,5 +81,56 @@ public class AuthService : IAuthService
                 Role = roles.FirstOrDefault() ?? "customer"
             }
         };
+    }
+
+    public async Task<bool> LogoutAsync(int userId, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+            return false;
+
+        user.TokenVersion++;
+
+        // Remove refresh token
+        user.RefreshToken = null;
+        user.RefreshTokenExpiry = DateTime.MinValue;
+
+        await _userManager.UpdateAsync(user);
+
+        return true;
+    }
+
+    public async Task<LoginResult> RefreshTokenAsync(string token, string refreshToken)
+    {
+        var user = _userManager.Users
+            .FirstOrDefault(u => u.RefreshToken == refreshToken);
+
+        if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
+        {
+            return new LoginResult
+            {
+                Success = false,
+                Message = "Invalid or expired refresh token"
+            };
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var newToken = _jwtService.GenerateToken(user, roles);
+
+        return new LoginResult
+        {
+            Success = true,
+            Token = newToken,
+            RefreshToken = refreshToken
+        };
+    }
+
+    private string GenerateRefreshToken()
+    {
+        var bytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes);
     }
 }

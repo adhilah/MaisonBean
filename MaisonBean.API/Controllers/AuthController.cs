@@ -1,6 +1,8 @@
 ﻿using MaisonBean.Application.Auth.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MaisonBean.API.Controllers;
 
@@ -15,7 +17,7 @@ public class AuthController : ControllerBase
         _mediator = mediator;
     }
 
-    // POST /api/auth/register
+    //register
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand cmd)
     {
@@ -48,7 +50,7 @@ public class AuthController : ControllerBase
         });
     }
 
-    // POST /api/auth/login
+    // login
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand cmd)
     {
@@ -80,7 +82,73 @@ public class AuthController : ControllerBase
             success = true,
             message = "Login successful",
             token = result.Token,
+            refreshToken = result.RefreshToken,
             user = result.User
+        });
+    }
+
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new
+            {
+                success = false,
+                message = "User not authenticated"
+            });
+
+        var result = await _mediator.Send(new LogoutCommand
+        {
+            UserId = int.Parse(userId)
+        }, ct);
+
+        if (!result)
+            return BadRequest(new
+            {
+                success = false,
+                message = "Logout failed"
+            });
+
+        return Ok(new
+        {
+            success = true,
+            message = "Logged out successfully"
+        });
+    }
+
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] TokenRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new
+            {
+                success = false,
+                message = "Invalid request"
+            });
+
+        var result = await _mediator.Send(new RefreshTokenCommand
+        {
+            Token = request.Token,
+            RefreshToken = request.RefreshToken
+        });
+
+        if (!result.Success)
+            return Unauthorized(new
+            {
+                success = false,
+                message = result.Message
+            });
+
+        return Ok(new
+        {
+            success = true,
+            token = result.Token,
+            refreshToken = result.RefreshToken
         });
     }
 }

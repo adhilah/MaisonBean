@@ -30,23 +30,23 @@ public class UpdateCartItemCommandHandler
 
     public async Task<Unit> Handle(UpdateCartItemCommand cmd, CancellationToken ct)
     {
-        // 🔐 Auth check
+        //Auth check
         if (cmd.UserId <= 0)
             throw new UnauthorizedAccessException("User not authenticated.");
 
-        // 🔍 Get cart item FIRST
+        //Get cart item FIRST
         var item = await _cart.GetByIdAsync(cmd.CartItemId, ct)
             ?? throw new KeyNotFoundException("Cart item not found.");
 
-        // ✅ NOW log values
+        //log values
         Console.WriteLine($"Token UserId: {cmd.UserId}");
         Console.WriteLine($"CartItem UserId: {item.UserId}");
 
-        // 🔐 Ownership check
+        //Ownership check
         if (item.UserId != cmd.UserId)
             throw new UnauthorizedAccessException("You cannot modify this item.");
 
-        // 🔥 Quantity logic
+        //Quantity logic
         if (cmd.Quantity <= 0)
         {
             _cart.RemoveItem(item);
