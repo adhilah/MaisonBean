@@ -1,8 +1,10 @@
 ﻿using MaisonBean.Application.Auth.Commands;
+using MaisonBean.Application.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 
 namespace MaisonBean.API.Controllers;
 
@@ -124,13 +126,6 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] TokenRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(new
-            {
-                success = false,
-                message = "Invalid request"
-            });
-
         var result = await _mediator.Send(new RefreshTokenCommand
         {
             Token = request.Token,

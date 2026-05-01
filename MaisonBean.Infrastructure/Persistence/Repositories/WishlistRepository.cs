@@ -32,8 +32,6 @@ namespace MaisonBean.Infrastructure.Persistence.Repositories
 
         public void Remove(WishlistItem item) =>
             _db.WishlistItems.Remove(item);
-
-        // ✅ NEW METHOD (IMPORTANT)
         public async Task<List<WishlistItemDto>> GetWishlistWithProducts(string userId, CancellationToken ct)
         {
             return await _db.WishlistItems

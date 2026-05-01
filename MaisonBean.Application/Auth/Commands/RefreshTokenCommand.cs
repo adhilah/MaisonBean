@@ -23,6 +23,6 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
         return await _authService.RefreshTokenAsync(
             request.Token,
             request.RefreshToken
-        );
+        );  
     }
 }

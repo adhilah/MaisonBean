@@ -59,7 +59,7 @@ public class AuthService : IAuthService
         var roles = await _userManager.GetRolesAsync(user);
         var token = _jwtService.GenerateToken(user, roles);
 
-        // 🔐 Generate Refresh Token
+        //Generate Refresh Token
         var refreshToken = GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
@@ -92,7 +92,7 @@ public class AuthService : IAuthService
 
         user.TokenVersion++;
 
-        // Remove refresh token
+       
         user.RefreshToken = null;
         user.RefreshTokenExpiry = DateTime.MinValue;
 
@@ -116,17 +116,24 @@ public class AuthService : IAuthService
         }
 
         var roles = await _userManager.GetRolesAsync(user);
+
         var newToken = _jwtService.GenerateToken(user, roles);
+
+        var newRefreshToken = GenerateRefreshToken();
+
+        user.RefreshToken = newRefreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        await _userManager.UpdateAsync(user);
 
         return new LoginResult
         {
             Success = true,
             Token = newToken,
-            RefreshToken = refreshToken
+            RefreshToken = newRefreshToken
         };
     }
-
-    private string GenerateRefreshToken()
+        private string GenerateRefreshToken()
     {
         var bytes = new byte[64];
         using var rng = RandomNumberGenerator.Create();

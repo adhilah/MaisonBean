@@ -5,15 +5,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace MaisonBean.Application.Cart;
-
-// ✅ RESULT CLASS (same file)
 public class AddToCartResult
 {
     public int CartItemId { get; set; }
     public decimal Total { get; set; }
 }
-
-// ✅ COMMAND
 public class AddToCartCommand : IRequest<AddToCartResult>, IValidatableObject
 {
     [JsonIgnore]
@@ -60,7 +56,6 @@ public class AddToCartCommand : IRequest<AddToCartResult>, IValidatableObject
     }
 }
 
-// ✅ HANDLER
 public class AddToCartCommandHandler
     : IRequestHandler<AddToCartCommand, AddToCartResult>
 {

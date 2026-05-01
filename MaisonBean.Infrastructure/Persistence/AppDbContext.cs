@@ -18,19 +18,16 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<MilkOption> MilkOptions { get; set; }
     public DbSet<WishlistItem> WishlistItems { get; set; }
 
-    // MODEL CONFIG
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        //ORDER RELATION (CASCADE DELETE)
         builder.Entity<Order>()
             .HasMany(o => o.Items)
             .WithOne(i => i.Order)
             .HasForeignKey(i => i.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // DECIMAL PRECISION (IMPORTANT)
         builder.Entity<Product>()
             .Property(p => p.Price)
             .HasPrecision(18, 2);
@@ -67,7 +64,6 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             .Property(o => o.MilkPriceAdd)
             .HasPrecision(18, 2);
 
-        // WISHLIST CONFIG
         builder.Entity<WishlistItem>(entity =>
         {
             entity.HasKey(w => w.Id);
