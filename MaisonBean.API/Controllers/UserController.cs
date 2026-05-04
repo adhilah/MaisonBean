@@ -1,4 +1,7 @@
 ﻿using MaisonBean.Application.Interfaces;
+using MaisonBean.Application.User.Commands;
+using MaisonBean.Application.User.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -9,8 +12,13 @@ using System.Security.Claims;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IMediator _mediator;
 
-    public UserController(IUserService userService) => _userService = userService;
+    public UserController(IUserService userService, IMediator mediator)
+    {
+        _userService = userService;
+        _mediator = mediator;
+    }
 
     // GET api/User/me
     [HttpGet("me")]
@@ -22,16 +30,14 @@ public class UserController : ControllerBase
         if (profile == null) return NotFound();
         return Ok(profile);
     }
-
-    // POST api/User/change-password
+    //change password
     [HttpPost("change-password")]
     [Authorize]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword(ChangePasswordCommand command)
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        command.UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        var success = await _userService.ChangePasswordAsync(
-            userId, request.CurrentPassword, request.NewPassword);
+        var success = await _mediator.Send(command);
 
         if (!success)
             return BadRequest(new { message = "Current password is incorrect" });
@@ -41,47 +47,55 @@ public class UserController : ControllerBase
 
     // POST api/User/forgot-password
     [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command)
     {
-        var success = await _userService.ForgotPasswordAsync(request.Email, request.NewPassword);
+        var success = await _mediator.Send(command);
 
         if (!success)
             return NotFound(new { message = "No account found with that email" });
 
         return Ok(new { message = "Password updated successfully" });
     }
-}
 
-public class ChangePasswordRequest
-{
-    [Required(ErrorMessage = "Current password is required")]
-    public string CurrentPassword { get; set; } = string.Empty;
+    //Get all user
+    [Authorize(Roles = "Admin")]
+    [HttpGet]
+    public async Task<IActionResult> GetAllUsers(CancellationToken ct)
+    {
+        var users = await _mediator.Send(new GetAllUsersQuery());
 
-    [Required(ErrorMessage = "New password is required")]
-    [RegularExpression(
-        @"^(?=.*[A-Z])(?=.*\d).{6,}$",
-        ErrorMessage = "Password must be at least 6 characters and include 1 uppercase, and 1 number"
-    )]
-    public string NewPassword { get; set; } = string.Empty;
+        return Ok(new
+        {
+            count = users.Count,
+            data = users
+        });
+    }
 
-    [Required(ErrorMessage = "Confirm password is required")]
-    [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
-    public string ConfirmPassword { get; set; } = string.Empty;
-}
-public class ForgotPasswordRequest
-{
-    [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid email address")]
-    public string Email { get; set; } = string.Empty;
+    //toggle- block user
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("{id}/toggle")]
+    public async Task<IActionResult> ToggleUser(int id)
+    {
+        var isBlocked = await _mediator.Send(new ToggleUserCommand(id));
 
-    [Required(ErrorMessage = "Password is required")]
-    [RegularExpression(
-        @"^(?=.*[A-Z])(?=.*\d).{6,}$",
-        ErrorMessage = "Password must be at least 6 characters and include 1 uppercase, and 1 number"
-    )]
-    public string NewPassword { get; set; } = string.Empty;
+        return Ok(new
+        {
+            message = isBlocked
+                ? "User successfully blocked"
+                : "User successfully unblocked"
+        });
+    }
 
-    [Required(ErrorMessage = "Confirm password is required")]
-    [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
-    public string ConfirmPassword { get; set; } = string.Empty;
+    //delete user
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        await _mediator.Send(new DeleteUserCommand(id));
+
+        return Ok(new
+        {
+            message = "User deleted successfully"
+        });
+    }
 }

@@ -24,6 +24,11 @@ public class CartItem
 
     public int? MilkId { get; private set; }
     public MilkOption? Milk { get; private set; }
+
+    public int? Strength { get; private set; }
+    public string? Temp { get; private set; }
+    public int? Sweetness { get; private set; }
+
     public decimal TotalPrice => UnitPrice * Quantity;
 
     private CartItem() { }
@@ -53,6 +58,12 @@ public class CartItem
             BeanId = beanId,
             MilkId = milkId,
         };
+    }
+    public void SetCustomization(int? strength, string? temp, int? sweetness)
+    {
+        Strength = strength;
+        Temp = temp;
+        Sweetness = sweetness;
     }
 
     public void UpdateQuantity(int qty) => Quantity = qty;

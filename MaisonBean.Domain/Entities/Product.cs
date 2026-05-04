@@ -13,6 +13,7 @@ public class Product : BaseEntity
     public string Image { get; private set; } = string.Empty;
     public int BaseCalories { get; private set; }
     public string HealthBenefits { get; private set; } = string.Empty;
+    public bool IsBlocked { get; private set; }
 
     private Product() { }
 
@@ -81,5 +82,9 @@ public class Product : BaseEntity
     {
         IsActive = false;
         SetUpdatedAt();
+    }
+    public void ToggleBlock()
+    {
+        IsBlocked = !IsBlocked;
     }
 }

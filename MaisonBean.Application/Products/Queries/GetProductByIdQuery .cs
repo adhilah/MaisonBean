@@ -17,7 +17,8 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
     public async Task<ProductDto?> Handle(GetProductByIdQuery request, CancellationToken ct)
     {
         var product = await _repo.GetByIdAsync(request.Id, ct);
-        if (product is null) return null;
+        if (product == null || product.IsBlocked)
+            return null;
 
         return new ProductDto
         {

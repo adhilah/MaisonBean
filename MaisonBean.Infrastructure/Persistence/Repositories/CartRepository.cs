@@ -27,12 +27,16 @@ public class CartRepository : ICartRepository
             .FirstOrDefaultAsync(c => c.Id == id, ct);
     }
 
+    // 🔥 FIXED METHOD
     public async Task<CartItem?> FindExistingAsync(
         int userId,
         int productId,
         bool isCustomized,
         int? beanId,
         int? milkId,
+        int? strength,
+        string? temp,
+        int? sweetness,
         CancellationToken ct = default)
     {
         return await _context.CartItems.FirstOrDefaultAsync(c =>
@@ -40,7 +44,10 @@ public class CartRepository : ICartRepository
             c.ProductId == productId &&
             c.IsCustomized == isCustomized &&
             c.BeanId == beanId &&
-            c.MilkId == milkId,
+            c.MilkId == milkId &&
+            c.Strength == strength &&        // 🔥 IMPORTANT
+            c.Temp == temp &&                // 🔥 IMPORTANT
+            c.Sweetness == sweetness,        // 🔥 IMPORTANT
             ct);
     }
 

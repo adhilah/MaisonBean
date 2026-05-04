@@ -2,8 +2,11 @@ using MaisonBean.Application.Auth;
 using MaisonBean.Application.Auth.Commands;
 using MaisonBean.Application.Common;
 using MaisonBean.Application.Interfaces;
+using MaisonBean.Application.Orders.Commands;
 using MaisonBean.Application.Products.Commands;
+using MaisonBean.Domain.Entities;
 using MaisonBean.Infrastructure;
+using MaisonBean.Infrastructure.Persistence;
 using MaisonBean.Infrastructure.Persistence.Repositories;
 using MaisonBean.Infrastructure.Services;
 using MediatR;
@@ -12,7 +15,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using MaisonBean.Application.Orders.Commands;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -107,19 +109,26 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+builder.Services.AddSwaggerGen(c =>
+{
+    c.UseInlineDefinitionsForEnums();
+});
 
 var app = builder.Build();
-
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider
-        .GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var services = scope.ServiceProvider;
 
-    foreach (var role in new[] { "customer", "admin" })
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole<int> { Name = role });
-    }
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+    await DbSeeder.SeedAdminAsync(userManager, roleManager);
 }
 
 app.UseSwagger();
@@ -132,6 +141,7 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseMiddleware<TokenVersionMiddleware>();
 app.UseAuthorization();
+app.UseMiddleware<BlockedUserMiddleware>();
 
 app.MapControllers();
 

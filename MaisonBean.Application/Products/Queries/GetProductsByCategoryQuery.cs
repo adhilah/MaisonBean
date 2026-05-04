@@ -18,18 +18,20 @@ public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCa
     {
         var products = await _repo.GetByCategoryAsync(request.Category, ct);
 
-        return products.Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Price = p.Price,
-            StockQuantity = p.StockQuantity,
-            IsActive = p.IsActive,
-            Category = p.Category,
-            Image = p.Image,
-            BaseCalories = p.BaseCalories,
-            HealthBenefits = p.HealthBenefits
-        });
+        return products
+            .Where(p => !p.IsBlocked)
+            .Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                StockQuantity = p.StockQuantity,
+                IsActive = p.IsActive,
+                Category = p.Category,
+                Image = p.Image,
+                BaseCalories = p.BaseCalories,
+                HealthBenefits = p.HealthBenefits
+            });
     }
 }

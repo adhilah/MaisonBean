@@ -5,6 +5,7 @@ public interface IUserService
     Task<UserProfileDto?> GetProfileAsync(int id, CancellationToken ct = default);
     Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
     Task<bool> ForgotPasswordAsync(string email, string newPassword);
+    Task<List<UserProfileDto>> GetAllUsersAsync(CancellationToken ct = default);
 }
 
 public class UserProfileDto

@@ -24,7 +24,9 @@ public class AddToCartCommand : IRequest<AddToCartResult>, IValidatableObject
     public int? MilkId { get; set; }
 
     public int Quantity { get; set; } = 1;
-
+    public int? Strength { get; set; }
+    public string? Temp { get; set; }
+    public int? Sweetness { get; set; }
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (!IsCustomized)
@@ -88,18 +90,21 @@ public class AddToCartCommandHandler
             cmd.Quantity = 1;
 
         if (cmd.Quantity > 10)
-            throw new ArgumentException("Maximum quantity allowed is 10");
+            throw new ArgumentException("Max quantity is 10");
 
         var product = await _products.GetByIdAsync(cmd.ProductId, ct)
-            ?? throw new KeyNotFoundException("Product not found.");
+            ?? throw new KeyNotFoundException("Product not found");
 
         if (!product.IsActive)
-            throw new InvalidOperationException("Product is not available.");
+            throw new InvalidOperationException("Product not available");
 
         if (cmd.Quantity > product.StockQuantity)
-            throw new InvalidOperationException("Insufficient stock.");
+            throw new InvalidOperationException("Insufficient stock");
 
-        // Customization
+        // 🔥 Customization handling
+        decimal beanPrice = 0;
+        decimal milkPrice = 0;
+
         if (!cmd.IsCustomized)
         {
             cmd.BeanId = null;
@@ -107,23 +112,18 @@ public class AddToCartCommandHandler
         }
         else
         {
-            if (!cmd.BeanId.HasValue || cmd.BeanId <= 0)
-                throw new ArgumentException("BeanId is required.");
-
-            if (!cmd.MilkId.HasValue || cmd.MilkId <= 0)
-                throw new ArgumentException("MilkId is required.");
-        }
-
-        decimal beanPrice = 0;
-        decimal milkPrice = 0;
-
-        if (cmd.IsCustomized)
-        {
             var bean = await _beans.GetByIdAsync(cmd.BeanId!.Value, ct)
-                ?? throw new KeyNotFoundException("Invalid BeanId.");
+                ?? throw new KeyNotFoundException("Invalid bean");
 
             var milk = await _milks.GetByIdAsync(cmd.MilkId!.Value, ct)
-                ?? throw new KeyNotFoundException("Invalid MilkId.");
+                ?? throw new KeyNotFoundException("Invalid milk");
+
+            // 🚨 IMPORTANT: prevent blocked options
+            if (bean.IsBlocked)
+                throw new InvalidOperationException("Bean is not available");
+
+            if (milk.IsBlocked)
+                throw new InvalidOperationException("Milk is not available");
 
             beanPrice = bean.PriceAdd;
             milkPrice = milk.PriceAdd;
@@ -131,13 +131,18 @@ public class AddToCartCommandHandler
 
         decimal unitPrice = product.Price + beanPrice + milkPrice;
 
+        // 🔥 UPDATED: include customization fields
         var existing = await _cart.FindExistingAsync(
             cmd.UserId,
             cmd.ProductId,
             cmd.IsCustomized,
             cmd.BeanId,
             cmd.MilkId,
-            ct);
+            cmd.Strength,
+            cmd.Temp,
+            cmd.Sweetness,
+            ct
+        );
 
         int cartItemId;
 
@@ -146,11 +151,10 @@ public class AddToCartCommandHandler
             var newQty = existing.Quantity + cmd.Quantity;
 
             if (newQty > product.StockQuantity)
-                throw new InvalidOperationException("Exceeds stock.");
+                throw new InvalidOperationException("Exceeds stock");
 
             existing.UpdateQuantity(newQty);
             _cart.Update(existing);
-
             await _uow.SaveChangesAsync(ct);
 
             cartItemId = existing.Id;
@@ -170,18 +174,19 @@ public class AddToCartCommandHandler
                 cmd.MilkId
             );
 
+            // 🔥 NEW (store customization)
+            item.SetCustomization(cmd.Strength, cmd.Temp, cmd.Sweetness);
+
             await _cart.AddAsync(item, ct);
             await _uow.SaveChangesAsync(ct);
 
             cartItemId = item.Id;
         }
 
-        decimal total = unitPrice * cmd.Quantity;
-
         return new AddToCartResult
         {
             CartItemId = cartItemId,
-            Total = total
+            Total = unitPrice * cmd.Quantity
         };
     }
 }

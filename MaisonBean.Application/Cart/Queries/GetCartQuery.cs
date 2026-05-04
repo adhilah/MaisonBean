@@ -39,6 +39,9 @@ public class CartItemDto
 
     public int? MilkId { get; set; }
     public string? MilkName { get; set; }
+    public int? Strength { get; set; }
+    public string? Temp { get; set; }
+    public int? Sweetness { get; set; }
 }
 
 
@@ -79,6 +82,11 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartResultDto>
 
                 MilkId = i.MilkId,
                 MilkName = i.Milk?.Name,
+
+                Strength = i.Strength,
+                Temp = i.Temp,
+                Sweetness = i.Sweetness
+
             }).ToList()
         };
     }

@@ -16,7 +16,7 @@ public class ProductsController : ControllerBase
     public ProductsController(IMediator mediator) => _mediator = mediator;
 
     // POST /api/products
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductCommand cmd)
     {
@@ -25,7 +25,7 @@ public class ProductsController : ControllerBase
     }
 
     // PUT /api/products/{id}
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProductCommand cmd)
     {
@@ -34,8 +34,23 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
-    // DELETE /api/products/{id}
-    [Authorize(Roles = "admin")]
+    //toggle
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("{id:int}/toggle")]
+    public async Task<IActionResult> Toggle(int id)
+    {
+        var isBlocked = await _mediator.Send(new ToggleProductCommand(id));
+
+        return Ok(new
+        {
+            message = isBlocked
+                ? "Product successfully blocked"
+                : "Product successfully unblocked"
+        });
+    }
+
+    // DELETE 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -44,7 +59,7 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
-    // GET /api/products/{id}
+    // GET
     [HttpGet("{id:int}")] 
     public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
@@ -54,7 +69,7 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
-    // GET /api/products/category/{category}
+    // GET - category
     [HttpGet("category/{category}")]
     public async Task<IActionResult> GetByCategory(string category)
     {

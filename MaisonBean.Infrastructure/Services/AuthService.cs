@@ -56,6 +56,13 @@ public class AuthService : IAuthService
         if (user == null || !await _userManager.CheckPasswordAsync(user, cmd.Password))
             return new LoginResult { Success = false, Message = "Invalid email or password." };
 
+        if (user.IsBlocked)
+            return new LoginResult
+            {
+                Success = false,
+                Message = "Your account is blocked"
+            };
+
         var roles = await _userManager.GetRolesAsync(user);
         var token = _jwtService.GenerateToken(user, roles);
 

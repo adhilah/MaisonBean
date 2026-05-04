@@ -1,5 +1,6 @@
 ﻿using MaisonBean.Application.Interfaces;
 using MaisonBean.Domain.Entities;
+using MaisonBean.Domain.Enums;
 using MediatR;
 
 namespace MaisonBean.Application.Orders.Commands;
@@ -63,7 +64,7 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, int>
             Subtotal = subtotal,
             Shipping = shipping,
             Total = total,
-            Status = "pending",
+            //Status = OrderStatus.Pending
             Items = orderItems
         };
 

@@ -1,7 +1,9 @@
-﻿using MaisonBean.Domain.Entities;
+﻿using MaisonBean.Domain.Common;
+using MaisonBean.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MaisonBean.Infrastructure.Persistence;
 
@@ -18,6 +20,9 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<MilkOption> MilkOptions { get; set; }
     public DbSet<WishlistItem> WishlistItems { get; set; }
 
+
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -31,6 +36,14 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         builder.Entity<Product>()
             .Property(p => p.Price)
             .HasPrecision(18, 2);
+        builder.Entity<Product>()
+    .HasQueryFilter(p => !p.IsBlocked);
+
+        builder.Entity<BeanType>()
+            .HasQueryFilter(b => !b.IsBlocked);
+
+        builder.Entity<MilkOption>()
+            .HasQueryFilter(m => !m.IsBlocked);
 
         builder.Entity<BeanType>()
             .Property(b => b.PriceAdd)
@@ -47,6 +60,9 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         builder.Entity<Order>()
             .Property(o => o.Shipping)
             .HasPrecision(18, 2);
+        builder.Entity<Order>()
+            .Property(o => o.Status)
+            .HasConversion<string>();
 
         builder.Entity<Order>()
             .Property(o => o.Total)
@@ -82,5 +98,27 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             entity.HasIndex(w => new { w.UserId, w.ProductId })
                   .IsUnique();
         });
+
     }
+    //using MaisonBean.Domain.Common;
+
+public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
+{
+    var entries = ChangeTracker.Entries<BaseEntity>();
+
+    foreach (var entry in entries)
+    {
+        if (entry.State == EntityState.Added)
+        {
+            entry.Entity.SetCreatedAt();
+        }
+
+        if (entry.State == EntityState.Modified)
+        {
+            entry.Entity.SetUpdatedAt();
+        }
+    }
+
+    return await base.SaveChangesAsync(ct);
+}
 }

@@ -80,7 +80,7 @@ public class PlaceSingleOrderHandler
             Subtotal = subtotal,
             Shipping = shipping,
             Total = total,
-            Status = "pending",
+            //Status = "pending",
             Items = new List<OrderItem> { orderItem }
         };
 

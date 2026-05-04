@@ -1,14 +1,14 @@
-﻿//namespace MaisonBean.Domain.Enums;
+﻿namespace MaisonBean.Domain.Enums;
 
-//public enum OrderStatus
-//{
-//    Pending = 1,
-//    Confirmed,
-//    Shipped,
-//    OutForDelivery,
-//    Delivered,
-//    Cancelled
-//}
+public enum OrderStatus
+{
+    Pending,
+    Processing,
+    Shipping,
+    OutForDelivery,
+    Delivered,
+    Cancelled
+}
 
 //public enum PaymentMethod
 //{

@@ -12,7 +12,7 @@ public static class OrderMapper
             Subtotal = order.Subtotal,
             Shipping = order.Shipping,
             Total = order.Total,
-            Status = order.Status,
+            Status = order.Status.ToString(),
 
             DeliveryAddress = order.DeliveryAddress,
             City = order.City,

@@ -1,7 +1,8 @@
 ﻿        using MaisonBean.Application.Interfaces;
 using MaisonBean.Application.Orders.Commands;
-using MaisonBean.Application.Orders.Requests;
 using MaisonBean.Application.Orders.DTOs;
+using MaisonBean.Application.Orders.Requests;
+using MaisonBean.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,6 @@ public class OrderController : ControllerBase
         return Ok(OrderMapper.ToDtoList(orders));
     }
 
-    // ✅ PLACE ORDER (Cart → Order)
     [HttpPost]
     public async Task<IActionResult> PlaceOrder(
         [FromBody] PlaceOrderRequest request,
@@ -81,7 +81,6 @@ public class OrderController : ControllerBase
         }
     }
 
-    // ✅ PLACE SINGLE PRODUCT ORDER (Buy Now)
     [HttpPost("single")]
     public async Task<IActionResult> PlaceSingleOrder(
         [FromBody] PlaceSingleOrderRequest request,
@@ -136,10 +135,10 @@ public class OrderController : ControllerBase
         if (order.UserId != userId)
             return Forbid();
 
-        if (order.Status == "delivered")
+        if (order.Status == OrderStatus.Delivered)
             return BadRequest("Cannot cancel delivered order");
 
-        order.Status = "cancelled";
+        order.Cancel();
 
         _orders.Update(order);
         await _uow.SaveChangesAsync(ct);
@@ -168,5 +167,44 @@ public class OrderController : ControllerBase
         await _uow.SaveChangesAsync(ct);
 
         return Ok(new { message = "Order deleted permanently" });
+    }
+
+    ////update status
+    //[Authorize(Roles = "Admin")]
+    //[HttpPatch("{id}/status")]
+    //public async Task<IActionResult> UpdateStatus(
+    //int id,
+    //[FromBody] UpdateOrderStatusCommand command,
+    //CancellationToken ct)
+    //{
+    //    if (id != command.OrderId)
+    //        return BadRequest("Order ID mismatch");
+
+    //    var result = await _mediator.Send(command, ct);
+
+    //    if (!result.Success)
+    //        return BadRequest(new { message = result.Message });
+
+    //    return Ok(new
+    //    {
+    //        message = result.Message,
+    //        status = result.Status
+    //    });
+    //}
+
+
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("{id}/status-options")]
+    private List<string> GetNextStatuses(OrderStatus current)
+    {
+        return current switch
+        {
+            OrderStatus.Pending => new() { "Processing" },
+            OrderStatus.Processing => new() { "Shipping" },
+            OrderStatus.Shipping => new() { "OutForDelivery" },
+            OrderStatus.OutForDelivery => new() { "Delivered" },
+            _ => new List<string>()
+        };
     }
 }
