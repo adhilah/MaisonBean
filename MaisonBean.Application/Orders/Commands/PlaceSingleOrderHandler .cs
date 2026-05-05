@@ -62,7 +62,9 @@ public class PlaceSingleOrderHandler
             ProductName = product.Name,
             ProductImage = product.Image,
             ProductCategory = product.Category,
-            //BasePrice = product.Price,
+            BeanPriceAdd = beanPrice,
+            MilkPriceAdd = milkPrice,
+            //AddressId = cmd.AddressId,
             UnitPrice = unitPrice,
             Quantity = cmd.Quantity,
             BeanId = cmd.BeanId,
@@ -72,15 +74,12 @@ public class PlaceSingleOrderHandler
         var order = new Order
         {
             UserId = cmd.UserId.ToString(),
-            DeliveryAddress = cmd.DeliveryAddress,
-            City = cmd.City,
-            Phone = cmd.Phone,
+            AddressId = cmd.AddressId,
             PaymentMethod = cmd.PaymentMethod,
             UpiId = cmd.UpiId,
             Subtotal = subtotal,
             Shipping = shipping,
             Total = total,
-            //Status = "pending",
             Items = new List<OrderItem> { orderItem }
         };
 

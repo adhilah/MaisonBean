@@ -1,4 +1,4 @@
-﻿        using MaisonBean.Application.Interfaces;
+﻿using MaisonBean.Application.Interfaces;
 using MaisonBean.Application.Orders.Commands;
 using MaisonBean.Application.Orders.DTOs;
 using MaisonBean.Application.Orders.Requests;
@@ -27,7 +27,7 @@ public class OrderController : ControllerBase
         _uow = uow;
     }
 
-    //Get All Order
+    //loged in user's Orders
     [HttpGet]
     public async Task<IActionResult> GetOrders(CancellationToken ct)
     {
@@ -41,25 +41,29 @@ public class OrderController : ControllerBase
         return Ok(OrderMapper.ToDtoList(orders));
     }
 
+    //post order
     [HttpPost]
     public async Task<IActionResult> PlaceOrder(
-        [FromBody] PlaceOrderRequest request,
-        CancellationToken ct)
+    [FromBody] PlaceOrderRequest request,
+    CancellationToken ct)
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(userId))
+            if (!int.TryParse(userId, out var parsedUserId))
                 return Unauthorized();
+
+            if (request.PaymentMethod?.ToLower() == "upi" && string.IsNullOrEmpty(request.UpiId))
+                return BadRequest(new { message = "UPI ID is required" });
 
             var command = new PlaceOrderCommand
             {
-                UserId = int.Parse(userId),
+                UserId = parsedUserId,
                 DeliveryAddress = request.DeliveryAddress,
                 City = request.City,
                 Phone = request.Phone,
-                PaymentMethod = request.PaymentMethod,
+                PaymentMethod = request.PaymentMethod.ToLower(),
                 UpiId = request.UpiId
             };
 
@@ -73,11 +77,14 @@ public class OrderController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message }); // ✅ 400
+            return BadRequest(new { message = ex.Message });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Something went wrong" });
+            return StatusCode(500, new
+            {
+                message = ex.Message
+            });
         }
     }
 
@@ -169,42 +176,32 @@ public class OrderController : ControllerBase
         return Ok(new { message = "Order deleted permanently" });
     }
 
-    ////update status
-    //[Authorize(Roles = "Admin")]
-    //[HttpPatch("{id}/status")]
-    //public async Task<IActionResult> UpdateStatus(
-    //int id,
-    //[FromBody] UpdateOrderStatusCommand command,
-    //CancellationToken ct)
-    //{
-    //    if (id != command.OrderId)
-    //        return BadRequest("Order ID mismatch");
-
-    //    var result = await _mediator.Send(command, ct);
-
-    //    if (!result.Success)
-    //        return BadRequest(new { message = result.Message });
-
-    //    return Ok(new
-    //    {
-    //        message = result.Message,
-    //        status = result.Status
-    //    });
-    //}
-
-
-
+    //get all users's orders
     [Authorize(Roles = "Admin")]
-    [HttpGet("{id}/status-options")]
-    private List<string> GetNextStatuses(OrderStatus current)
+    [HttpGet("all/ad")]
+    public async Task<IActionResult> GetAllOrders(CancellationToken ct)
     {
-        return current switch
+        var orders = await _orders.GetAllAsync(ct);
+
+        var result = OrderMapper.ToDtoList(orders);
+
+        return Ok(result);
+    }
+
+    //update delivery status
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("{id}/status/ad")]
+    public async Task<IActionResult> UpdateStatus(
+    int id,
+    [FromQuery] OrderStatus newStatus)   // creates dropdown
+    {
+        var command = new UpdateOrderStatusCommand
         {
-            OrderStatus.Pending => new() { "Processing" },
-            OrderStatus.Processing => new() { "Shipping" },
-            OrderStatus.Shipping => new() { "OutForDelivery" },
-            OrderStatus.OutForDelivery => new() { "Delivered" },
-            _ => new List<string>()
+            OrderId = id,
+            NewStatus = newStatus
         };
+
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 }

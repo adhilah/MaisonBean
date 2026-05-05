@@ -18,8 +18,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.Total).HasPrecision(18, 2);
 
         builder.HasMany(o => o.Items)
-               .WithOne()
+               .WithOne(i => i.Order)
                .HasForeignKey(i => i.OrderId)
                .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(o => o.Address)
+                .WithMany()
+                .HasForeignKey(o => o.AddressId)
+                .OnDelete(DeleteBehavior.Restrict);
     }
 }

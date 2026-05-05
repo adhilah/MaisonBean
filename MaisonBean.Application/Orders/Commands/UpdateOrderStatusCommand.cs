@@ -3,6 +3,7 @@ using MaisonBean.Domain.Enums;
 using MediatR;
 
 namespace MaisonBean.Application.Orders.Commands;
+
 public class UpdateOrderStatusCommand : IRequest<UpdateOrderStatusResult>
 {
     public int OrderId { get; set; }

@@ -59,7 +59,7 @@ public class UserController : ControllerBase
 
     //Get all user
     [Authorize(Roles = "Admin")]
-    [HttpGet]
+    [HttpGet("customers/ad")]
     public async Task<IActionResult> GetAllUsers(CancellationToken ct)
     {
         var users = await _mediator.Send(new GetAllUsersQuery());
@@ -73,7 +73,7 @@ public class UserController : ControllerBase
 
     //toggle- block user
     [Authorize(Roles = "Admin")]
-    [HttpPatch("{id}/toggle")]
+    [HttpPatch("{id}/block/ad")]
     public async Task<IActionResult> ToggleUser(int id)
     {
         var isBlocked = await _mediator.Send(new ToggleUserCommand(id));
@@ -88,7 +88,7 @@ public class UserController : ControllerBase
 
     //delete user
     [Authorize(Roles = "Admin")]
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}delete/ad")]
     public async Task<IActionResult> DeleteUser(int id)
     {
         await _mediator.Send(new DeleteUserCommand(id));

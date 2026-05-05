@@ -11,10 +11,7 @@ public class PlaceSingleOrderCommand : IRequest<int>
     public int? BeanId { get; set; }
     public int? MilkId { get; set; }
 
-    public string DeliveryAddress { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
-
+    public int AddressId { get; set; }
     public string PaymentMethod { get; set; } = string.Empty;
     public string? UpiId { get; set; }
 }

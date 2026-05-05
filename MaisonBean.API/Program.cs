@@ -3,9 +3,12 @@ using MaisonBean.Application.Auth.Commands;
 using MaisonBean.Application.Common;
 using MaisonBean.Application.Interfaces;
 using MaisonBean.Application.Orders.Commands;
+using MaisonBean.Application.Payments.Interfaces;
 using MaisonBean.Application.Products.Commands;
 using MaisonBean.Domain.Entities;
+using MaisonBean.Domain.Enums;
 using MaisonBean.Infrastructure;
+using MaisonBean.Infrastructure.Payments;
 using MaisonBean.Infrastructure.Persistence;
 using MaisonBean.Infrastructure.Persistence.Repositories;
 using MaisonBean.Infrastructure.Services;
@@ -20,15 +23,17 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 
+// ================= INFRASTRUCTURE =================
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// ================= MEDIATR =================
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(PlaceOrderHandler).Assembly));
 
+// ================= JWT CONFIG =================
 var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
     .Get<JwtSettings>()!;
-
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -59,6 +64,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// ================= CORS =================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -72,18 +78,27 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-builder.Services.AddControllers();
+// ================= CONTROLLERS + ENUM FIX =================
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 
+// ================= REPOSITORIES =================
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
-
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-
+// ================= SWAGGER (FINAL FIX) =================
 builder.Services.AddSwaggerGen(c =>
 {
+    // 🔐 JWT Auth
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -108,19 +123,26 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
-});
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
-builder.Services.AddSwaggerGen(c =>
-{
+
+    // ✅ ENUM DROPDOWN FIX
     c.UseInlineDefinitionsForEnums();
+
+    c.MapType<OrderStatus>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Enum = Enum.GetNames(typeof(OrderStatus))
+    .Select(n => (Microsoft.OpenApi.Any.IOpenApiAny)new Microsoft.OpenApi.Any.OpenApiString(n))
+    .ToList()
+    });
 });
 
+//==================RAZORPAY====================
+builder.Services.AddScoped<IPaymentService, RazorpayService>();
+
+// ================= BUILD APP =================
 var app = builder.Build();
+
+// ================= SEED ADMIN =================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -131,6 +153,7 @@ using (var scope = app.Services.CreateScope())
     await DbSeeder.SeedAdminAsync(userManager, roleManager);
 }
 
+// ================= MIDDLEWARE =================
 app.UseSwagger();
 app.UseSwaggerUI();
 

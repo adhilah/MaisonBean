@@ -14,9 +14,9 @@ public static class OrderMapper
             Total = order.Total,
             Status = order.Status.ToString(),
 
-            DeliveryAddress = order.DeliveryAddress,
-            City = order.City,
-            Phone = order.Phone,
+            DeliveryAddress = order.Address.DeliveryAddress,
+            City = order.Address.City,
+            Phone = order.Address.Phone,
 
             PaymentMethod = order.PaymentMethod,
             CreatedAt = order.CreatedAt,

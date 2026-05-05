@@ -17,7 +17,7 @@ public class ProductsController : ControllerBase
 
     // POST /api/products
     [Authorize(Roles = "Admin")]
-    [HttpPost]
+    [HttpPost("product/ad")]
     public async Task<IActionResult> Create([FromBody] CreateProductCommand cmd)
     {
         var id = await _mediator.Send(cmd);
@@ -26,7 +26,7 @@ public class ProductsController : ControllerBase
 
     // PUT /api/products/{id}
     [Authorize(Roles = "Admin")]
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}update/ad")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProductCommand cmd)
     {
         cmd.Id = id;
@@ -36,7 +36,7 @@ public class ProductsController : ControllerBase
 
     //toggle
     [Authorize(Roles = "Admin")]
-    [HttpPatch("{id:int}/toggle")]
+    [HttpPatch("{id:int}/block/ad")]
     public async Task<IActionResult> Toggle(int id)
     {
         var isBlocked = await _mediator.Send(new ToggleProductCommand(id));
@@ -51,7 +51,7 @@ public class ProductsController : ControllerBase
 
     // DELETE 
     [Authorize(Roles = "Admin")]
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}/ad")]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _mediator.Send(new DeleteProductCommand { Id = id });

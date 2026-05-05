@@ -34,7 +34,7 @@ public class MilkOptionsController : ControllerBase
     }
 
     // CREATE
-    [HttpPost]
+    [HttpPost("milk/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateMilkOptionCommand command, CancellationToken ct)
     {
@@ -49,7 +49,7 @@ public class MilkOptionsController : ControllerBase
     }
 
     // UPDATE
-    [HttpPut("{id}")]
+    [HttpPut("{id}/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateMilkOptionCommand command, CancellationToken ct)
     {
@@ -66,7 +66,7 @@ public class MilkOptionsController : ControllerBase
     }
 
     // TOGGLE BLOCK
-    [HttpPatch("{id}/toggle")]
+    [HttpPatch("{id}/block/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ToggleBlock(int id, CancellationToken ct)
     {
@@ -82,7 +82,7 @@ public class MilkOptionsController : ControllerBase
     }
 
     // DELETE
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {

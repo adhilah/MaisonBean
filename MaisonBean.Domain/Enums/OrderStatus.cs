@@ -1,4 +1,6 @@
-﻿namespace MaisonBean.Domain.Enums;
+﻿using System.ComponentModel;
+
+namespace MaisonBean.Domain.Enums;
 
 public enum OrderStatus
 {

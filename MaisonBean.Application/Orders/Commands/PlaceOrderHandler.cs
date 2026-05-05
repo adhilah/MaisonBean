@@ -41,11 +41,12 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, int>
                 ProductName = c.ProductName,
                 ProductImage = c.ProductImage,
                 ProductCategory = c.ProductCategory,
-                //BasePrice = c.UnitPrice,
                 UnitPrice = c.UnitPrice,
                 Quantity = c.Quantity,
                 BeanId = c.BeanId,
-                MilkId = c.MilkId
+                BeanPriceAdd = 0,
+                MilkId = c.MilkId,
+                MilkPriceAdd = 0,
             };
         }).ToList();
 
@@ -55,16 +56,12 @@ public class PlaceOrderHandler : IRequestHandler<PlaceOrderCommand, int>
         var order = new Order
         {
             UserId = cmd.UserId.ToString(),
-            //UserEmail = cmd.UserEmail,
-            DeliveryAddress = cmd.DeliveryAddress,
-            City = cmd.City,
-            Phone = cmd.Phone,
+            AddressId = cmd.AddressId,
             PaymentMethod = cmd.PaymentMethod,
             UpiId = cmd.UpiId,
             Subtotal = subtotal,
             Shipping = shipping,
             Total = total,
-            //Status = OrderStatus.Pending
             Items = orderItems
         };
 

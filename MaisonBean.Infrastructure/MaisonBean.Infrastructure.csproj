@@ -14,6 +14,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+		<PackageReference Include="Razorpay" Version="3.3.2" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\MaisonBean.Application\MaisonBean.Application.csproj" />

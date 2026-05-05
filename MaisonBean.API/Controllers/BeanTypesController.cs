@@ -20,7 +20,7 @@ public class BeanTypesController : ControllerBase
         => Ok(await _mediator.Send(new GetBeanTypesQuery()));
 
     //CREATE
-    [HttpPost]
+    [HttpPost("bean/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(CreateBeanTypeCommand command)
     {
@@ -34,7 +34,7 @@ public class BeanTypesController : ControllerBase
     }
 
     //UPDATE
-    [HttpPut("{id}")]
+    [HttpPut("{id}update/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, UpdateBeanTypeCommand command)
     {
@@ -50,7 +50,7 @@ public class BeanTypesController : ControllerBase
     }
 
     //TOGGLE -BLOCK
-    [HttpPatch("{id}/toggle")]
+    [HttpPatch("{id}/block/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Toggle(int id)
     {
@@ -65,7 +65,7 @@ public class BeanTypesController : ControllerBase
     }
 
     //DELETE
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}/ad")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {

@@ -1,6 +1,8 @@
-﻿namespace MaisonBean.Application.Orders.Requests;
+﻿using MaisonBean.Domain.Enums;
 
-public class UpdateStatusRequest
+namespace MaisonBean.Application.Orders.Requests;
+
+public class UpdateOrderStatusRequest
 {
-    public string Status { get; set; } = string.Empty;
+    public OrderStatus NewStatus { get; set; }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Reflection.Emit;
 
 namespace MaisonBean.Infrastructure.Persistence;
 
@@ -18,6 +19,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<BeanType> BeanTypes { get; set; }
     public DbSet<MilkOption> MilkOptions { get; set; }
+    public DbSet<Address> Addresses { get; set; }
     public DbSet<WishlistItem> WishlistItems { get; set; }
 
 
@@ -37,7 +39,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             .Property(p => p.Price)
             .HasPrecision(18, 2);
         builder.Entity<Product>()
-    .HasQueryFilter(p => !p.IsBlocked);
+            .HasQueryFilter(p => !p.IsBlocked);
 
         builder.Entity<BeanType>()
             .HasQueryFilter(b => !b.IsBlocked);
@@ -79,6 +81,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         builder.Entity<OrderItem>()
             .Property(o => o.MilkPriceAdd)
             .HasPrecision(18, 2);
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
         builder.Entity<WishlistItem>(entity =>
         {
@@ -100,7 +103,6 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         });
 
     }
-    //using MaisonBean.Domain.Common;
 
 public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
 {
@@ -121,4 +123,5 @@ public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
 
     return await base.SaveChangesAsync(ct);
 }
+
 }

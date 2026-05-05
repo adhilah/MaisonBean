@@ -18,6 +18,7 @@ public class OrderRepository : IOrderRepository
     {
         return await _context.Orders
             .Include(o => o.Items)
+            .Include(o => o.Address)
             .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(ct);
@@ -27,12 +28,22 @@ public class OrderRepository : IOrderRepository
     {
         return await _context.Orders
             .Include(o => o.Items)
+            .Include(o => o.Address)
             .FirstOrDefaultAsync(o => o.Id == id, ct);
     }
 
     public async Task AddAsync(Order order, CancellationToken ct)
     {
         await _context.Orders.AddAsync(order, ct);
+    }
+
+    public async Task<List<Order>> GetAllAsync(CancellationToken ct)
+    {
+        return await _context.Orders
+            .Include(o => o.Items)
+            .Include(o => o.Address)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync(ct);
     }
 
     public void Update(Order order)

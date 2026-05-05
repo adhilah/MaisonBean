@@ -1,16 +1,14 @@
 ﻿using MaisonBean.Domain.Common;
+using MaisonBean.Domain.Entities;
 using MaisonBean.Domain.Enums;
-
-namespace MaisonBean.Domain.Entities;
 
 public class Order : BaseEntity
 {
     public string UserId { get; set; } = string.Empty;
     public string UserEmail { get; set; } = string.Empty;
 
-    public string DeliveryAddress { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
+    public int AddressId { get; set; }
+    public Address Address { get; set; } = null!;
 
     public string PaymentMethod { get; set; } = string.Empty;
     public string? UpiId { get; set; }
@@ -19,12 +17,14 @@ public class Order : BaseEntity
     public decimal Shipping { get; set; }
     public decimal Total { get; set; }
 
-    // 🔥 STATUS (Controlled)
+    public string? RazorpayOrderId { get; set; }
+    public string? RazorpayPaymentId { get; set; }
+    public DateTime? PaidAt { get; set; }
+
     public OrderStatus Status { get; private set; } = OrderStatus.Pending;
 
     public List<OrderItem> Items { get; set; } = new();
 
-    // 🔥 UPDATE STATUS (Admin flow)
     public void UpdateStatus(OrderStatus newStatus)
     {
         if (!IsValidTransition(Status, newStatus))
@@ -35,7 +35,6 @@ public class Order : BaseEntity
         SetUpdatedAt();
     }
 
-    // 🔥 CANCEL ORDER (User)
     public void Cancel()
     {
         if (Status >= OrderStatus.Shipping)
@@ -46,7 +45,6 @@ public class Order : BaseEntity
         SetUpdatedAt();
     }
 
-    // 🔥 STATE MACHINE (CORE LOGIC)
     private bool IsValidTransition(OrderStatus current, OrderStatus next)
     {
         return current switch
@@ -56,17 +54,6 @@ public class Order : BaseEntity
             OrderStatus.Shipping => next == OrderStatus.OutForDelivery,
             OrderStatus.OutForDelivery => next == OrderStatus.Delivered,
             _ => false
-        };
-    }
-    private List<string> GetNextStatuses(OrderStatus current)
-    {
-        return current switch
-        {
-            OrderStatus.Pending => new() { "Processing" },
-            OrderStatus.Processing => new() { "Shipping" },
-            OrderStatus.Shipping => new() { "OutForDelivery" },
-            OrderStatus.OutForDelivery => new() { "Delivered" },
-            _ => new List<string>()
         };
     }
 }
