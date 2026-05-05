@@ -4,15 +4,7 @@ namespace MaisonBean.Application.Orders.Requests;
 
 public class PlaceOrderRequest : IValidatableObject
 {
-    [Required(ErrorMessage = "Delivery address is required")]
-    [MinLength(5, ErrorMessage = "Delivery address must be at least 5 characters")]
-    public string DeliveryAddress { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "City is required")]
-    public string City { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Phone number is required")]
-    [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Phone number must be 10 digits")]
+    public int AddressId { get; set; }
     public string Phone { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Payment method is required")]

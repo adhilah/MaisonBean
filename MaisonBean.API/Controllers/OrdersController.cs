@@ -60,9 +60,7 @@ public class OrderController : ControllerBase
             var command = new PlaceOrderCommand
             {
                 UserId = parsedUserId,
-                DeliveryAddress = request.DeliveryAddress,
-                City = request.City,
-                Phone = request.Phone,
+                AddressId = request.AddressId,
                 PaymentMethod = request.PaymentMethod.ToLower(),
                 UpiId = request.UpiId
             };
@@ -108,9 +106,7 @@ public class OrderController : ControllerBase
                 IsCustomized = request.IsCustomized,
                 BeanId = request.BeanId,
                 MilkId = request.MilkId,
-                DeliveryAddress = request.DeliveryAddress,
-                City = request.City,
-                Phone = request.Phone,
+                AddressId = request.AddressId,
                 PaymentMethod = request.PaymentMethod,
                 UpiId = request.UpiId
             };
