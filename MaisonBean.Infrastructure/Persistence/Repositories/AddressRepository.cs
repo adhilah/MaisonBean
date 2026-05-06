@@ -28,4 +28,8 @@ public class AddressRepository : IAddressRepository
     {
         await _context.Addresses.AddAsync(address, ct);
     }
+    public void Update(Address address)
+    {
+        _context.Addresses.Update(address);
+    }
 }

@@ -1,10 +1,7 @@
-using MaisonBean.Application.Auth;
-using MaisonBean.Application.Auth.Commands;
 using MaisonBean.Application.Common;
 using MaisonBean.Application.Interfaces;
 using MaisonBean.Application.Orders.Commands;
 using MaisonBean.Application.Payments.Interfaces;
-using MaisonBean.Application.Products.Commands;
 using MaisonBean.Domain.Entities;
 using MaisonBean.Domain.Enums;
 using MaisonBean.Infrastructure;
@@ -21,7 +18,6 @@ using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // ================= INFRASTRUCTURE =================
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -68,17 +64,15 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.SetIsOriginAllowed(origin =>
-        {
-            var uri = new Uri(origin);
-            return uri.Host == "localhost" || uri.Host == "127.0.0.1";
-        })
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials());
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
-// ================= CONTROLLERS + ENUM FIX =================
+// ================= CONTROLLERS =================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -96,49 +90,51 @@ builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-// ================= SWAGGER (FINAL FIX) =================
+// ================= PAYMENT =================
+builder.Services.AddScoped<IPaymentService, RazorpayService>();
+
+// ================= SWAGGER =================
 builder.Services.AddSwaggerGen(c =>
 {
-    // 🔐 JWT Auth
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter your JWT token"
-    });
-
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
+    c.AddSecurityDefinition("Bearer",
+        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+            Name = "Authorization",
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Description = "Enter JWT token"
+        });
 
-    // ✅ ENUM DROPDOWN FIX
+    c.AddSecurityRequirement(
+        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+
     c.UseInlineDefinitionsForEnums();
 
     c.MapType<OrderStatus>(() => new Microsoft.OpenApi.Models.OpenApiSchema
     {
         Type = "string",
         Enum = Enum.GetNames(typeof(OrderStatus))
-    .Select(n => (Microsoft.OpenApi.Any.IOpenApiAny)new Microsoft.OpenApi.Any.OpenApiString(n))
-    .ToList()
+            .Select(x =>
+                (Microsoft.OpenApi.Any.IOpenApiAny)
+                new Microsoft.OpenApi.Any.OpenApiString(x))
+            .ToList()
     });
 });
-
-//==================RAZORPAY====================
-builder.Services.AddScoped<IPaymentService, RazorpayService>();
 
 // ================= BUILD APP =================
 var app = builder.Build();
@@ -148,13 +144,38 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    var userManager = services.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var userManager =
+        services.GetRequiredService<UserManager<AppUser>>();
+
+    var roleManager =
+        services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
     await DbSeeder.SeedAdminAsync(userManager, roleManager);
 }
+//====================Create Roles=====================
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager =
+        scope.ServiceProvider
+        .GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+    string[] roles = { "ADMIN", "CUSTOMER" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(
+                new IdentityRole<int>(role)
+            );
+        }
+    }
+}
 
 // ================= MIDDLEWARE =================
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
@@ -163,8 +184,11 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
+
 app.UseMiddleware<TokenVersionMiddleware>();
+
 app.UseAuthorization();
+
 app.UseMiddleware<BlockedUserMiddleware>();
 
 app.MapControllers();

@@ -5,7 +5,7 @@ namespace MaisonBean.Application.Orders.Requests;
 public class PlaceOrderRequest : IValidatableObject
 {
     public int AddressId { get; set; }
-    public string Phone { get; set; } = string.Empty;
+    //public string Phone { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Payment method is required")]
     public string PaymentMethod { get; set; } = string.Empty;

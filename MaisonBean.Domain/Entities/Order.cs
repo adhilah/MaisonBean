@@ -7,8 +7,8 @@ public class Order : BaseEntity
     public string UserId { get; set; } = string.Empty;
     public string UserEmail { get; set; } = string.Empty;
 
-    public int AddressId { get; set; }
-    public Address Address { get; set; } = null!;
+    public int? AddressId { get; set; }
+    public Address? Address { get; set; } = null!;
 
     public string PaymentMethod { get; set; } = string.Empty;
     public string? UpiId { get; set; }

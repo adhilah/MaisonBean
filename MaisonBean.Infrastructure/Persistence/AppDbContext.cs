@@ -34,6 +34,7 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
             .WithOne(i => i.Order)
             .HasForeignKey(i => i.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<Address>();
 
         builder.Entity<Product>()
             .Property(p => p.Price)
