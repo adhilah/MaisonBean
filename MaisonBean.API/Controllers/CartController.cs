@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 [ApiController]
+[Authorize(Roles = "Customer")]
 [Route("api/cart")]
 [Authorize]
 public class CartController : ControllerBase

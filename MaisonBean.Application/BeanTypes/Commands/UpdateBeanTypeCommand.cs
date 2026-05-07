@@ -1,11 +1,14 @@
 ﻿using MaisonBean.Application.Interfaces;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace MaisonBean.Application.BeanTypes.Commands;
 
 public class UpdateBeanTypeCommand : IRequest<Unit>
 {
+
+    [JsonIgnore]
     public int Id { get; set; }
 
     [Required]

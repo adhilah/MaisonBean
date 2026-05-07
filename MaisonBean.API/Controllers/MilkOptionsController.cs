@@ -49,12 +49,32 @@ public class MilkOptionsController : ControllerBase
     }
 
     // UPDATE
+    //[HttpPut("{id}/ad")]
+    //[Authorize(Roles = "Admin")]
+    //public async Task<IActionResult> Update(
+    //int id,
+    //[FromBody] UpdateMilkOptionCommand command,
+    //CancellationToken ct)
+    //{
+    //    command.Id = id;
+
+    //    await _mediator.Send(command, ct);
+
+    //    return Ok(new
+    //    {
+    //        success = true,
+    //        message = "Milk option updated successfully"
+    //    });
+    //}
+
     [HttpPut("{id}/ad")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateMilkOptionCommand command, CancellationToken ct)
+    public async Task<IActionResult> Update(
+    int id,
+    [FromBody] UpdateMilkOptionCommand command,
+    CancellationToken ct)
     {
-        if (id != command.Id)
-            return BadRequest("ID mismatch");
+        command.Id = id;
 
         await _mediator.Send(command, ct);
 
@@ -64,7 +84,6 @@ public class MilkOptionsController : ControllerBase
             message = "Milk option updated successfully"
         });
     }
-
     // TOGGLE BLOCK
     [HttpPatch("{id}/block/ad")]
     [Authorize(Roles = "Admin")]

@@ -9,6 +9,7 @@ using System.Security.Claims;
 namespace MaisonBean.API.Controllers;
 
 [ApiController]
+
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {

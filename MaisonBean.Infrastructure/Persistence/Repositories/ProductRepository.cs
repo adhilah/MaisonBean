@@ -33,6 +33,39 @@ public class ProductRepository : IProductRepository
             .AnyAsync(p => p.Name.ToLower() == name.ToLower(), ct);
     }
 
+
+    //GetAllForAdmin
+    public async Task<IEnumerable<Product>>
+    GetAllForAdminAsync()
+    {
+        return await _context.Products
+            .IgnoreQueryFilters()
+            .ToListAsync();
+    }
+
+    //search
+
+    public async Task<IEnumerable<Product>> SearchAsync(
+    string term,
+    CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(term))
+            return new List<Product>();
+
+        term = term.Trim().ToLower();
+
+        return await _context.Products
+            .Where(p =>
+                p.IsActive &&
+                !p.IsBlocked &&
+                (
+                    p.Name.ToLower().StartsWith(term) ||
+                    p.Category.ToLower().StartsWith(term)
+                ))
+            .Take(5)
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(Product product) =>
         await _context.Products.AddAsync(product);
 

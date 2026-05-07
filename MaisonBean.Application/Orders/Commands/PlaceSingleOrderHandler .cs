@@ -2,6 +2,8 @@
 using MaisonBean.Domain.Entities;
 using MediatR;
 
+namespace MaisonBean.Application.Orders.Commands;
+
 public class PlaceSingleOrderHandler
     : IRequestHandler<PlaceSingleOrderCommand, int>
 {
@@ -25,65 +27,136 @@ public class PlaceSingleOrderHandler
         _uow = uow;
     }
 
-    public async Task<int> Handle(PlaceSingleOrderCommand cmd, CancellationToken ct)
+    public async Task<int> Handle(
+        PlaceSingleOrderCommand cmd,
+        CancellationToken ct)
     {
-        var product = await _products.GetByIdAsync(cmd.ProductId, ct)
-            ?? throw new Exception("Product not found");
+        // PRODUCT VALIDATION
+        var product = await _products.GetByIdAsync(
+            cmd.ProductId,
+            ct);
+
+        if (product == null)
+            throw new InvalidOperationException(
+                "Product not found");
 
         if (!product.IsActive)
-            throw new Exception("Product not available");
+            throw new InvalidOperationException(
+                "Product not available");
+
+        if (product.IsBlocked)
+            throw new InvalidOperationException(
+                "Product is blocked");
+
+        if (cmd.Quantity <= 0)
+            throw new InvalidOperationException(
+                "Quantity must be greater than 0");
+
+        if (product.StockQuantity < cmd.Quantity)
+            throw new InvalidOperationException(
+                $"Only {product.StockQuantity} items available");
 
         decimal beanPrice = 0;
         decimal milkPrice = 0;
 
+        BeanType? bean = null;
+        MilkOption? milk = null;
+
+        // CUSTOMIZATION VALIDATION
         if (cmd.IsCustomized)
         {
-            if (!cmd.BeanId.HasValue || !cmd.MilkId.HasValue)
-                throw new Exception("Customization required");
+            if (!cmd.BeanId.HasValue)
+                throw new InvalidOperationException(
+                    "Bean selection required");
 
-            var bean = await _beans.GetByIdAsync(cmd.BeanId.Value, ct)
-                ?? throw new Exception("Invalid Bean");
+            if (!cmd.MilkId.HasValue)
+                throw new InvalidOperationException(
+                    "Milk selection required");
 
-            var milk = await _milks.GetByIdAsync(cmd.MilkId.Value, ct)
-                ?? throw new Exception("Invalid Milk");
+            bean = await _beans.GetByIdAsync(
+                cmd.BeanId.Value,
+                ct);
+
+            if (bean == null)
+                throw new InvalidOperationException(
+                    "Invalid bean");
+
+            milk = await _milks.GetByIdAsync(
+                cmd.MilkId.Value,
+                ct);
+
+            if (milk == null)
+                throw new InvalidOperationException(
+                    "Invalid milk");
 
             beanPrice = bean.PriceAdd;
             milkPrice = milk.PriceAdd;
         }
 
-        decimal unitPrice = product.Price + beanPrice + milkPrice;
-        decimal subtotal = unitPrice * cmd.Quantity;
-        decimal shipping = 50;
-        decimal total = subtotal + shipping;
+        // PRICE CALCULATION
+        decimal unitPrice =
+            product.Price +
+            beanPrice +
+            milkPrice;
 
+        decimal subtotal =
+            unitPrice * cmd.Quantity;
+
+        decimal shipping = 50;
+
+        decimal total =
+            subtotal + shipping;
+
+        // ORDER ITEM
         var orderItem = new OrderItem
         {
             ProductId = product.Id,
+
             ProductName = product.Name,
+
             ProductImage = product.Image,
+
             ProductCategory = product.Category,
-            BeanPriceAdd = beanPrice,
-            MilkPriceAdd = milkPrice,
-            //AddressId = cmd.AddressId,
+
             UnitPrice = unitPrice,
+
             Quantity = cmd.Quantity,
+
             BeanId = cmd.BeanId,
-            MilkId = cmd.MilkId
+
+            MilkId = cmd.MilkId,
+
+            BeanPriceAdd = beanPrice,
+
+            MilkPriceAdd = milkPrice
         };
 
+        // ORDER
         var order = new Order
         {
             UserId = cmd.UserId.ToString(),
+
             AddressId = cmd.AddressId,
+
             PaymentMethod = cmd.PaymentMethod,
+
             UpiId = cmd.UpiId,
+
             Subtotal = subtotal,
+
             Shipping = shipping,
+
             Total = total,
-            Items = new List<OrderItem> { orderItem }
+
+            Items = new List<OrderItem>
+            {
+                orderItem
+            }
         };
 
+        // SAVE ORDER
         await _orders.AddAsync(order, ct);
+
         await _uow.SaveChangesAsync(ct);
 
         return order.Id;

@@ -1,9 +1,11 @@
-﻿using MediatR;
+﻿using MaisonBean.Application.Payments.Commands;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MaisonBean.Application.Payments.Commands;
 
 [ApiController]
 [Route("api/payment")]
+[Authorize(Roles = "Customer")]
 public class PaymentController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -14,6 +16,7 @@ public class PaymentController : ControllerBase
     }
 
     //CREATE using OrderId
+
     [HttpPost("create/{orderId}")]
     public async Task<IActionResult> Create(int orderId)
     {

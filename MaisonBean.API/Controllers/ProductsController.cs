@@ -15,6 +15,24 @@ public class ProductsController : ControllerBase
 
     public ProductsController(IMediator mediator) => _mediator = mediator;
 
+    //search
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+    [FromQuery] string term,
+    CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(term))
+            return BadRequest(
+                "Search term is required");
+
+        var result = await _mediator.Send(
+            new SearchProductsQuery(term),
+            ct);
+
+        return Ok(result);
+    }
+
+
     // POST /api/products
     [Authorize(Roles = "Admin")]
     [HttpPost("product/ad")]
@@ -84,6 +102,20 @@ public class ProductsController : ControllerBase
     {
         var result = await _mediator.Send(new GetAllProductsQuery(), ct);
         if (!result.Any()) return NotFound("No products found.");
+        return Ok(result);
+    }
+
+    // GET /api/products/admin/all
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin/all")]
+    public async Task<IActionResult> GetAllForAdmin(
+        CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new GetAllProductsForAdminQuery(),
+            ct
+        );
+
         return Ok(result);
     }
 }

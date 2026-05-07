@@ -6,6 +6,7 @@ using System.Security.Claims;
 using MaisonBean.Application.Wishlist.Commands;
 
 [ApiController]
+[Authorize(Roles = "Customer")]
 [Route("api/[controller]")]
 [Authorize]
 public class WishlistController : ControllerBase

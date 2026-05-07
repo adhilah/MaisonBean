@@ -2,11 +2,13 @@
 using MaisonBean.Domain.Entities;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace MaisonBean.Application.MilkOptions.Commands;
 
 public class UpdateMilkOptionCommand : IRequest<Unit>
 {
+    [JsonIgnore]
     public int Id { get; set; }
 
     [Required]

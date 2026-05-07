@@ -32,4 +32,8 @@ public class AddressRepository : IAddressRepository
     {
         _context.Addresses.Update(address);
     }
+    public void Delete(Address address)
+    {
+        _context.Addresses.Remove(address);
+    }
 }

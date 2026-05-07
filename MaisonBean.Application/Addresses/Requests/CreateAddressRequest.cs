@@ -14,7 +14,7 @@ public class CreateAddressRequest
 
     [Required(ErrorMessage = "Phone number is required")]
     [Phone(ErrorMessage = "Invalid phone number")]
-    [StringLength(15, MinimumLength = 10,
-        ErrorMessage = "Phone number must be between 10 and 15 digits")]
+    [StringLength(10, MinimumLength = 10,
+        ErrorMessage = "Phone number must be 10 digits")]
     public string Phone { get; set; } = string.Empty;
 }

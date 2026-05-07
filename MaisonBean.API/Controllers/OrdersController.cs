@@ -28,6 +28,7 @@ public class OrderController : ControllerBase
     }
 
     //loged in user's Orders
+    [Authorize(Roles = "Customer")]
     [HttpGet]
     public async Task<IActionResult> GetOrders(CancellationToken ct)
     {
@@ -42,6 +43,7 @@ public class OrderController : ControllerBase
     }
 
     //post order
+    [Authorize(Roles = "Customer")]
     [HttpPost]
     public async Task<IActionResult> PlaceOrder(
     [FromBody] PlaceOrderRequest request,
@@ -85,7 +87,7 @@ public class OrderController : ControllerBase
             });
         }
     }
-
+    [Authorize(Roles = "Customer")]
     [HttpPost("single")]
     public async Task<IActionResult> PlaceSingleOrder(
         [FromBody] PlaceSingleOrderRequest request,
@@ -122,6 +124,7 @@ public class OrderController : ControllerBase
     }
 
     //CANCEL ORDER (STATUS = cancelled)
+    
     [HttpPatch("{id}/cancel")]
     public async Task<IActionResult> Cancel(int id, CancellationToken ct)
     {
@@ -150,6 +153,7 @@ public class OrderController : ControllerBase
     }
 
     //DELETE ORDER (REMOVE FROM DB)
+    [Authorize(Roles = "Customer")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {

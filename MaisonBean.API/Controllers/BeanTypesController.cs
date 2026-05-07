@@ -34,12 +34,13 @@ public class BeanTypesController : ControllerBase
     }
 
     //UPDATE
-    [HttpPut("{id}update/ad")]
+    [HttpPut("{id}/update/ad")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Update(int id, UpdateBeanTypeCommand command)
+    public async Task<IActionResult> Update(
+    int id,
+    [FromBody] UpdateBeanTypeCommand command)
     {
-        if (id != command.Id)
-            return BadRequest("ID mismatch");
+        command.Id = id;
 
         await _mediator.Send(command);
 
